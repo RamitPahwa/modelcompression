@@ -128,9 +128,9 @@ class CIFARSel(data.Dataset):
             return len(self.train_data_selected)
         else:
             return len(self.test_data_selected)
-name_class={'airplane':0,'automobile':1,'bird':2,'cat':3,'deer':4,'dog':5,'frog':6,'horse':7,'ship':8,'truck':9}
-dataset =  CIFARSel('data/',['dog'],name_class=name_class)
-print(len(dataset))
+# name_class={'airplane':0,'automobile':1,'bird':2,'cat':3,'deer':4,'dog':5,'frog':6,'horse':7,'ship':8,'truck':9}
+# dataset =  CIFARSel('data/',['dog'],name_class=name_class)
+# print(len(dataset))
 
 class CIFAR100Sel(CIFARSel):
     'Inherits CIFARSel Class'
