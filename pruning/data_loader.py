@@ -69,8 +69,16 @@ class CIFARSel(data.Dataset):
                     if self.train_labels[i] == name_class[name]:
                         self.train_data_selected.append(self.train_data[i])
                         self.train_labels_selected.append(self.train_labels[i])
-                        
+            self.labels_ids = set(self.train_labels_selected)  
 
+            self.labels_id_dict = {}
+            counter = 0 
+            for i in self.labels_ids:
+                self.labels_id_dict[i] = counter 
+                counter = counter + 1
+            for i in range(len(self.train_labels_selected)):
+                self.train_labels_selected[i] = self.labels_id_dict[self.train_labels_selected[i]]          
+            print(self.train_labels_selected)
         else:
             self.test_data_selected =[]
             self.test_labels_selected =[]
@@ -97,8 +105,17 @@ class CIFARSel(data.Dataset):
                     if self.test_labels[i] == name_class[name]:
                         self.test_data_selected.append(self.test_data[i])
                         self.test_labels_selected.append(self.test_labels[i])
-                        
+            self.labels_ids = set(self.test_labels_selected)
+            self.labels_id_dict = {}
+            counter = 0 
+            for i in self.labels_ids:
+                self.labels_id_dict[i] = counter 
+                counter = counter + 1
 
+            for i in range(len(self.test_labels_selected)):
+                self.test_labels_selected[i]= self.labels_id_dict[self.test_labels_selected[i]]
+
+        
     def __getitem__(self, index):
         """
         Args:
@@ -128,9 +145,10 @@ class CIFARSel(data.Dataset):
             return len(self.train_data_selected)
         else:
             return len(self.test_data_selected)
-# name_class={'airplane':0,'automobile':1,'bird':2,'cat':3,'deer':4,'dog':5,'frog':6,'horse':7,'ship':8,'truck':9}
-# dataset =  CIFARSel('data/',['dog'],name_class=name_class)
-# print(len(dataset))
+
+name_class={'airplane':0,'automobile':1,'bird':2,'cat':3,'deer':4,'dog':5,'frog':6,'horse':7,'ship':8,'truck':9}
+dataset =  CIFARSel('data/',['dog','cat','truck'],name_class=name_class)
+    
 
 class CIFAR100Sel(CIFARSel):
     'Inherits CIFARSel Class'
