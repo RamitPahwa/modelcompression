@@ -1,0 +1,565 @@
+\NeedsTeXFormat{LaTeX2e}[2015/04/23]
+\ProvidesPackage{AuxCommandsICLR}[2018/09/22 class style file]
+
+% Load Auxiliary Packages
+\RequirePackage{amsmath}
+%\RequirePackage{microtype}			% Disabled temporarily
+\RequirePackage{setspace}
+\RequirePackage{xspace}
+\RequirePackage[utf8]{inputenc}
+%\RequirePackage[T1]{fontenc}
+\RequirePackage{xparse}
+%\RequirePackage[normalem]{ulem}	% Disabled temporarily
+%\RequirePackage{mathrsfs}			% Disabled temporarily
+\RequirePackage{mleftright}
+\RequirePackage{amssymb}
+\RequirePackage{bm}
+%\RequirePackage{amsthm}			% Disabled temporarily
+\RequirePackage{enumerate}
+% \begin{enumerate}[({A}1),ref={A\arabic*}] with \pref{label} works with enumitem.sty
+% Use \setlist{leftmargin=*} command after loading with \RequirePackage[shortlabels]{enumitem}
+
+%\RequirePackage{tikz}				% Disabled temporarily
+\RequirePackage{graphicx}
+\RequirePackage{xcolor}
+%\RequirePackage{textcomp}			% Disabled temporarily
+%\RequirePackage{caption}			% Disabled temporarily
+%\RequirePackage{comment}
+%\RequirePackage{fancyhdr}			% Loaded by iclr2019_conference.sty
+\RequirePackage{xpatch}
+% Only use to modify placement rules for standard floats
+%\RequirePackage{float}
+
+\RequirePackage{multirow}
+\RequirePackage{booktabs}
+%\RequirePackage{cellspace}
+\RequirePackage{tabu}
+
+\RequirePackage{cases}
+\RequirePackage{mathtools}
+\RequirePackage[text]{esdiff}		% need extra brace pair for expandable arguments like \vec{x}
+%\RequirePackage{cite}				% Disabled temporarily for natbib.sty
+
+%\RequirePackage{calrsfs}			% Disabled temporarily
+%\RequirePackage{upgreek}			% Disabled temporarily
+%\RequirePackage{subcaption}		% Disabled temporarily
+
+\RequirePackage{algorithm}
+%\RequirePackage[noend]{algpseudocode}
+\RequirePackage{algpseudocode}
+
+%\RequirePackage{environ}
+%\RequirePackage{natbib}			% Loaded by iclr2019_conference.sty
+\RequirePackage{url}
+\RequirePackage{hyperref}
+%\hypersetup
+%{
+%	colorlinks=true,
+%	unicode=true,
+%	extension=,
+%	pdfstartview=FitBH,
+%	final=true
+%}
+%\RequirePackage{bookmark}			% Disabled temporarily
+
+
+% Setting global parameters and aliases
+\newlength{\figwidth}
+\if@twocolumn
+	\setlength{\figwidth}{\linewidth}
+\else
+	\setlength{\figwidth}{0.5\textwidth}
+\fi
+\DeclareGraphicsExtensions{.pdf,.png,.jpg}
+
+% For utilizing bibliography when working with subfiles package
+\newcommand*{\bibsubfile}[2]{
+\bibliographystyle{#1}
+\bibliography{#2}
+}
+
+
+% Delimiter defining and redefining commands
+% Definition: \NewPairedDelimiter{\cc}{\lbrace}{\rbrace}
+% Definition: \RenewPairedDelimiter{\aa}{\langle}{\rangle}
+% Usage 1 (autoscaling)	:		\cc{\sum}
+% Usage 2 (no scaling)	:		\cc*{\sum}
+% Usage 3 (manual scaling):		\cc[\big]{\sum}
+\NewDocumentCommand\NewPairedDelimiter{mmm}{%
+	\NewDocumentCommand#1{som}{%
+		\IfNoValueTF{##2}{%
+			\IfBooleanTF{##1}
+			{#2##3#3}
+			{\mleft#2##3\mright#3}%
+		}
+		{\mathopen{##2#2}##3\mathclose{##2#3}}%
+	}%
+}
+\NewDocumentCommand\RenewPairedDelimiter{mmm}{%
+	\RenewDocumentCommand#1{som}{%
+		\IfNoValueTF{##2}{%
+			\IfBooleanTF{##1}
+			{#2##3#3}
+			{\mleft#2##3\mright#3}%
+		}
+		{\mathopen{##2#2}##3\mathclose{##2#3}}%
+	}%
+}
+
+% Defining and redefining commands to utilize scaling options of delimiters for adorned norms and function like commands
+% Definition: \NewPrefixPostfixDelimiter{\adornednorm}{prefix-expression}{\defineddelimiter}{postfix-expression}
+% Definition: \RenewPrefixPostfixDelimiter{\adornednorm}{prefix-expression}{\defineddelimiter}{postfix-expression}
+% Usage 1 (autoscaling)		:	\adornednorm{\sum}
+% Usage 2 (manual scaling)	:	\adornednorm[\big]{\sum}
+\NewDocumentCommand\NewPrefixPostfixDelimiter{mmmm}{%
+	\NewDocumentCommand#1{om}{%
+		\IfNoValueTF{##1}
+		{#2#3{##2}#4}
+		{#2#3[##1]{##2}#4}%
+	}%
+}
+\NewDocumentCommand\RenewPrefixPostfixDelimiter{mmmm}{%
+	\RenewDocumentCommand#1{om}{%
+		\IfNoValueTF{##1}
+		{#2#3{##2}#4}
+		{#2#3[##1]{##2}#4}%
+	}%
+}
+
+% General comment defining and redefining commands (algpseudocode package)
+% Definition 1 (regular text)		:	\NewCommentCommand*<color>[marker]{\comment}{\hfill}
+%	Usage :	\comment{text} will render a comment with marker 'marker' in color 'color' in regular font and right aligned on current line
+% Definition 2 (emphasized text)	:	\NewCommentCommand<color>[marker]{\comment}{\hfill}
+%	Usage :	\comment{text} will render a comment with marker 'marker' in color 'color' in emphasized font and right aligned on current line
+% Definition 3 (emphasized text)	:	\NewCommentCommand<color>[marker]{\linecomment}{\State}
+%	Usage :	\linecomment{text} will render a comment with marker 'marker' in color 'color' in emphasized font and aligned with code block on new line
+% Definition 3 (emphasized text)	:	\NewCommentCommand[marker]{\linecomment}{\State}
+%	Usage 1 (manual color)	:	\linecomment[color]{text} will render a comment with marker 'marker' in color 'color' in emphasized font and aligned with code block on new line
+%	Usage 2 (auto color)	:	\linecomment{text} will render a comment with marker 'marker' in emphasized font and aligned with code block on new line (color is that of surrounding text)
+\NewDocumentCommand\NewCommentCommand{sd<>O{$\triangleright$}mm}{%
+	\IfNoValueTF{#2}{%
+		\NewDocumentCommand#4{om}{%
+			\IfNoValueTF{##1}{%
+				\IfBooleanTF{#1}
+				{#5 #3 ##2}
+				{#5 #3 \emph{##2}}%
+			}{%
+				\IfBooleanTF{#1}
+				{#5 \textcolor{##1}{#3 ##2}}
+				{#5 \textcolor{##1}{#3 \emph{##2}}}%
+			}%
+		}%
+	}{%
+		\NewDocumentCommand#4{m}{%
+			\IfBooleanTF{#1}
+			{#5 \textcolor{#2}{#3 ##1}}
+			{#5 \textcolor{#2}{#3 \emph{##1}}}%
+		}%
+	}%
+}
+\NewDocumentCommand\RenewCommentCommand{sd<>O{$\triangleright$}mm}{%
+	\IfNoValueTF{#2}{%
+		\RenewDocumentCommand#4{om}{%
+			\IfNoValueTF{##1}{%
+				\IfBooleanTF{#1}
+				{#5 #3 ##2}
+				{#5 #3 \emph{##2}}%
+			}{%
+				\IfBooleanTF{#1}
+				{#5 \textcolor{##1}{#3 ##2}}
+				{#5 \textcolor{##1}{#3 \emph{##2}}}%
+			}%
+		}%
+	}{%
+		\RenewDocumentCommand#4{m}{%
+			\IfBooleanTF{#1}
+			{#5 \textcolor{#2}{#3 ##1}}
+			{#5 \textcolor{#2}{#3 \emph{##1}}}%
+		}%
+	}%
+}
+
+% New Theorem Environment Names
+%\newtheorem{remark}{Remark}
+%\newtheorem{theorem}{Theorem}
+%\newtheorem*{theorem*}{Theorem}
+%\newtheorem*{corollary*}{Corollary}
+%\newtheorem{lemma}{Lemma}
+%\newtheorem{corollary}{Corollary}
+%\newtheorem{proposition}{Proposition}
+%\newtheorem{conjecture}{Conjecture}
+%\newtheorem{definition}{Definition}
+\newtheorem{assumption}{Assumption}
+
+% New Theorem Environment Prefixes
+%%%%%%%%NOTE: There are versions of these defined in math_commands.tex file that can be used for referencing.
+\newcommand{\definitionname}{Definition}
+\newcommand{\definitionsname}{Definitions}
+\newcommand{\theoremname}{Theorem}
+\newcommand{\theoremsname}{Theorems}
+\newcommand{\lemmaname}{Lemma}
+\newcommand{\lemmasname}{Lemmas}
+\newcommand{\remarkname}{Remark}
+\newcommand{\remarksname}{Remarks}
+\newcommand{\corollaryname}{Corollary}
+\newcommand{\corollariesname}{Corollaries}
+\newcommand{\propositionname}{Proposition}
+\newcommand{\propositionsname}{Propositions}
+\newcommand{\conjecturename}{Conjecture}
+\newcommand{\conjecturesname}{Conjectures}
+\newcommand{\problemname}{Problem}
+\newcommand{\problemsname}{Problems}
+\providecommand*{\sectionname}{Section}
+\newcommand{\secname}{Section}
+\newcommand{\sectionsname}{Sections}
+%\newcommand{\subsectionname}{Subsection}
+\newcommand{\subsectionsname}{Subsections}
+\newcommand{\appendicesname}{Appendices}
+\newcommand{\algorithmname}{Algorithm}
+\newcommand{\algorithmsname}{Algorithms}
+\newcommand{\figuresname}{Figures}
+\providecommand*{\figurename}{Figure}
+\providecommand*{\tablename}{Table}
+
+
+% Functions on Scalars
+%\NewPairedDelimiter{\floor}{\lfloor}{\rfloor}				% Defined by math_commands.tex
+%\NewPairedDelimiter{\ceil}{\lceil}{\rceil}					% Defined by math_commands.tex
+\NewPairedDelimiter{\abs}{\lvert}{\rvert}
+\NewPrefixPostfixDelimiter{\sgn}{\mathop{\textnormal{sgn}}}{\bb}{}
+
+% Functions on Sets
+\NewPairedDelimiter{\card}{\lvert}{\rvert}
+\newcommand{\comp}{\textnormal{c}}
+\NewPrefixPostfixDelimiter{\spn}{\mathop{\textnormal{Span}}}{\bb}{}
+%\DeclareMathOperator*{\argmax}{arg\,max}					% Defined by math_commands.tex
+%\DeclareMathOperator*{\argmin}{arg\,min}					% Defined by math_commands.tex
+\DeclareMathOperator*{\dsum}{\sum\sum}
+
+% Functions on Vectors and Matrices: Norms
+\NewPairedDelimiter{\norm}{\lVert}{\rVert}
+\NewPrefixPostfixDelimiter{\zeronorm}{}{\norm}{_{0}}
+\NewPrefixPostfixDelimiter{\onenorm}{}{\norm}{_{1}}
+\NewPrefixPostfixDelimiter{\twonorm}{}{\norm}{_{2}}
+\NewPrefixPostfixDelimiter{\pnorm}{}{\norm}{_{p}}
+\NewPrefixPostfixDelimiter{\qnorm}{}{\norm}{_{q}}
+\NewPrefixPostfixDelimiter{\infnorm}{}{\norm}{_{\infty}}
+\NewPrefixPostfixDelimiter{\nucnorm}{}{\norm}{_{*}}
+\NewPrefixPostfixDelimiter{\fronorm}{}{\norm}{_{\textnormal{F}}}
+\NewPrefixPostfixDelimiter{\twoinfnorm}{}{\norm}{_{2,\infty}}
+\NewPrefixPostfixDelimiter{\zeronormrow}{}{\norm}{_{\textnormal{r}}}
+\NewPrefixPostfixDelimiter{\zeronormcol}{}{\norm}{_{\textnormal{c}}}
+
+% Functions on Vectors and Matrices: Others
+\newcommand{\len}[1]{\textnormal{N}_{#1}}
+\NewPrefixPostfixDelimiter{\supp}{\mathop{\textnormal{supp}}}{\bb}{}
+\NewPrefixPostfixDelimiter{\rank}{\mathop{\textnormal{rank}}}{\bb}{}
+\NewPrefixPostfixDelimiter{\diag}{\mathop{\textnormal{diag}}}{\bb}{}
+\newcommand{\tpose}[1]{#1^{\textnormal{T}}}
+\newcommand{\inv}[1]{#1^{-1}}
+\newcommand{\ctpose}[1]{#1^{\textnormal{H}}}
+\newcommand{\pinv}[1]{#1^{\dagger}}
+\NewPrefixPostfixDelimiter{\trace}{\mathop{\textnormal{Tr}}}{\bb}{}
+\NewPrefixPostfixDelimiter{\svd}{\mathop{\textnormal{SVD}}}{\bb}{}
+% Projection operator
+% Usage 1 (autoscaling delimiter around 'projecting-this')		:	\proj<projecting-onto-set>{projecting-this}
+% Usage	2 (manual scaling delimiter around 'projecting-this')	:	\proj[\big]<projecting-onto-set>{projecting-this}
+\NewDocumentCommand{\proj}{oD<>{\Omega}m}{%
+	\IfNoValueTF{#1}
+	{\mathcal{P}_{#2}\bb{#3}}
+	{\mathcal{P}_{#2}\bb[#1]{#3}}%
+}
+
+% Functions on Random Variables
+\DeclareMathOperator*{\esssup}{ess\,sup}
+\NewPrefixPostfixDelimiter{\var}{\mathop{\textnormal{Var}}}{\BB}{}
+% Expectation operator
+% Usage 1 (autoscaling delimiter after 'E')		:	\expect<subscript-to-E>{expectation-of-this}<conditioned-on-this>
+% Usage 2 (manual scaling delimiter after 'E')	:	\expect[\big]<subscript-to-E>{expectation-of-this}<conditioned-on-this>
+\NewDocumentCommand{\expect}{od<>md<>}{%
+	\IfNoValueTF{#1}{%
+		\IfNoValueTF{#2}{%
+			\IfNoValueTF{#4}{%
+				\mathop{\mathbb{E}}\BB{#3}%
+			}{%
+				\mathop{\mathbb{E}}\BB{#3\mathrel{}\middle|\mathrel{}#4}%
+			}%
+		}{%
+			\IfNoValueTF{#4}{%
+				\mathop{\mathbb{E}}\nolimits_{#2}\BB{#3}%
+			}{%
+				\mathop{\mathbb{E}}\nolimits_{#2}\BB{#3\mathrel{}\middle|\mathrel{}#4}%
+			}%
+		}%
+	}{%
+		\IfNoValueTF{#2}{%
+			\IfNoValueTF{#4}{%
+				\mathop{\mathbb{E}}\BB[#1]{#3}%
+			}{%
+				\mathop{\mathbb{E}}\BB[#1]{#3\mathrel{#1|}#4}%
+			}%
+		}{%
+			\IfNoValueTF{#4}{%
+				\mathop{\mathbb{E}}\nolimits_{#2}\BB[#1]{#3}%
+			}{%
+				\mathop{\mathbb{E}}\nolimits_{#2}\BB[#1]{#3\mathrel{#1|}#4}%
+			}%
+		}%
+	}%
+}
+
+% Formatting lp norms
+\newcommand{\lpnorm}[1][p]{$\ell_{#1}$-norm}
+\newcommand{\lpnorms}[1][p]{$\ell_{#1}$-norms}
+\newcommand{\lzeronorm}{$\ell_{0}$-pseudonorm}
+\newcommand{\lzeronorms}{$\ell_{0}$-pseudonorms}
+\newcommand{\lonenorm}{\lpnorm[1]}
+\newcommand{\lonenorms}{\lpnorms[1]}
+\newcommand{\ltwonorm}{\lpnorm[2]}
+\newcommand{\ltwonorms}{\lpnorms[2]}
+\newcommand{\linfnorm}{\lpnorm[\infty]}
+\newcommand{\linfnorms}{\lpnorms[\infty]}
+
+% Formatting abbreviations
+\newcommand{\ie}{\textit{i.e.}}
+\newcommand{\etc}{\textit{etc.}}
+\newcommand{\eg}{\textit{e.g.}}
+\newcommand{\viz}{\textit{viz.}}
+\newcommand{\rhs}{\textit{r.h.s.}}
+\newcommand{\lhs}{\textit{l.h.s.}}
+\newcommand{\iid}{\textit{i.i.d.}}
+\newcommand{\wrt}{\textit{w.r.t.}}
+\newcommand{\WLOG}{\textit{w.l.o.g.}}
+\newcommand{\whp}{\textit{w.h.p.}}
+\newcommand{\thp}{\text{th}}
+\newcommand{\st}{\text{st}}
+\newcommand{\nd}{\text{nd}}
+%\newcommand{\rd}{\text{rd}}								% Conflict with unrelated command in math_commands.tex
+
+% mainly for shorthand reference to optimization problems and associated values and solutions
+\newcommand{\opt}{\textnormal{opt}}
+\newcommand{\OPT}{\textnormal{OPT}}
+\providecommand*{\eye}{\mathbf{I}}
+
+% for complicated referencing requirements
+\@ifpackageloaded{hyperref}{
+	\newcommand{\aref}[1]{(\hyperref[#1]{A\ref{#1}})}		% Referencing assumptions directly
+	\newcommand{\sref}[1]{(\hyperref[#1]{S\ref{#1}})}		% Referencing steps directly
+	\NewDocumentCommand{\pref}{mo}{%						% Referencing problems directly
+		\IfNoValueTF{#2}
+		{\eqref{#1}}
+		{\hyperref[#1]{\ref{#1}}$\bb{#2}$}%
+	}
+}{
+	\newcommand{\aref}[1]{(A\ref{#1})}
+	\newcommand{\sref}[1]{(S\ref{#1})}
+	\NewDocumentCommand{\pref}{mo}{%
+		\IfNoValueTF{#2}
+		{\eqref{#1}}
+		{\ref{#1}$\bb{#2}$}%
+	}
+}
+
+% manual color markup commands
+% Note: preferable to use latexdiff for automatic markup
+\@ifpackageloaded{xcolor}{
+	\newcommand{\btxt}[1]{\textcolor{blue}{#1}}
+	\newcommand{\bmth}[1]{\mathcolor{blue}{#1}}
+	\newcommand{\gtxt}[1]{\textcolor{blue}{#1}}
+	\newcommand{\rtxt}[1]{{\color{red} {#1}}}
+	\newcommand{\rmth}[1]{\mathcolor{red}{#1}}
+}
+
+% Math Mode Formatting Commands
+\renewcommand{\vec}[1]{\bm{#1}}
+\newcommand{\mat}[1]{\bm{#1}}
+% Inner Product Operator
+% Usage 1 (autoscaling)		:	\ip{vector-1}{vector-2}
+% Usage 2 (manual scaling)	:	\ip[\big]{vector-1}{vector-2}
+\NewDocumentCommand{\ip}{omm}{%
+	\IfNoValueTF{#1}
+	{\aad{#2,#3}}
+	{\aad[#1]{#2,#3}}%
+}
+% Set builder notation
+% Usage 1 (autoscaling)		:	\set{representative-element}{condition}
+% Usage 2 (manual scaling)	:	\set[\big]{representative-element}{condition}
+\NewDocumentCommand{\set}{omm}{%
+	\IfNoValueTF{#1}
+	{\cc{#2\mathrel{}\middle|\mathrel{}#3}}
+	{\cc[#1]{#2\mathrel{#1|}#3}}%
+}
+% Conditional inside parenthesis
+% Usage 1 (autoscaling)		:	\bbc{first-element}{second-element}
+% Usage 2 (manual scaling)	:	\bbc[\big]{first-element}{second-element}
+\NewDocumentCommand{\bbc}{omm}{%
+	\IfNoValueTF{#1}
+%	{\bb{#2\mathrel{}\middle|\mathrel{}#3}}
+	{\bb{#2\middle|#3}}
+%	{\bb[#1]{#2\mathrel{#1|}#3}}%
+	{\bb[#1]{#2{#1|}#3}}%
+}
+\newcommand{\fcolon}{\mathpunct{:}}
+\NewPrefixPostfixDelimiter{\BigOh}{O}{\bb}{}
+\NewPrefixPostfixDelimiter{\litOh}{o}{\bb}{}
+\NewPrefixPostfixDelimiter{\BigOm}{\Omega}{\bb}{}
+\NewPrefixPostfixDelimiter{\litOm}{\omega}{\bb}{}
+
+
+% Construct to define minimization problems and number them automatically
+% Usage: \minimize{optimization-variables}{objective-function}{constraint-1 \sep constraint-2 \sep constraint-3}{\label{reference-label}}
+\newcounter{problem}
+\newcommand{\sep}{\\ & & &}
+
+% To typeset 'minimize' problem on two lines (default)
+\newcommand{\minimize}[4]{%
+	\stepcounter{problem}%
+	\begin{equation}
+		\begin{aligned}
+		& \underset{#1}{\textnormal{minimize}} & & #2 \\
+		& \textnormal{subject to} & & #3
+		\end{aligned}
+		\tag{P\textsubscript{\theproblem}}	#4
+	\end{equation}%
+}
+
+% To typeset 'minimize' problem on one line
+\newcommand{\minimizeol}[4]{%
+	\stepcounter{problem}%
+	\begin{equation}
+		\begin{aligned}
+		& \underset{#1}{\textnormal{minimize}} & & #2 & \textnormal{subject to} & & #3
+		\end{aligned}
+		\tag{P\textsubscript{\theproblem}}	#4
+	\end{equation}%
+}
+
+
+% Construct to define feasibility problems and number them automatically
+% Usage: \find{optimization-variables}{constraint-1 \sep constraint-2 \sep constraint-3}{\label{reference-label}}
+
+% To typeset 'find' problem in two lines (default)
+\newcommand{\find}[3]{%
+	\stepcounter{problem}%
+	\begin{equation}
+		\begin{aligned}
+		& \textnormal{find} & & #1 \\
+		& \textnormal{subject to} & & #2
+		\end{aligned}
+		\tag{P\textsubscript{\theproblem}}	#3
+	\end{equation}%
+}
+
+% To typeset 'find' problem in a single line
+\newcommand{\findol}[3]{%
+	\stepcounter{problem}%
+	\begin{equation}
+		\begin{aligned}
+		& \textnormal{find} & & #1 & \textnormal{subject to} & & #2
+		\end{aligned}
+		\tag{P\textsubscript{\theproblem}}	#3
+	\end{equation}%
+}
+
+% Delimiter Definitions
+\NewPairedDelimiter{\bb}{(}{)}
+\NewPairedDelimiter{\cc}{\{}{\}}
+\NewPairedDelimiter{\BB}{[}{]}
+\NewPairedDelimiter{\bd}{(}{.}
+\NewPairedDelimiter{\db}{.}{)}
+\NewPairedDelimiter{\cd}{\{}{.}
+\NewPairedDelimiter{\dc}{.}{\}}
+\NewPairedDelimiter{\Bd}{[}{.}
+\NewPairedDelimiter{\dB}{.}{]}
+\NewPairedDelimiter{\aad}{\langle}{\rangle}
+
+\NewPairedDelimiter{\bB}{(}{]}
+
+% Standard Sets and Fields
+\newcommand{\setS}[1]{\mathbb{#1}}
+\newcommand{\setR}{\setS{R}}
+\newcommand{\setC}{\setS{C}}
+\newcommand{\setSp}[2][z]{\setS{#2}[#1]}
+\newcommand{\setF}[1]{\mathbb{F}_{#1}}
+\newcommand{\setFp}[2][z]{\setF{#2}[#1]}
+\newcommand{\setN}{\setS{N}}
+\newcommand{\setZ}{\setS{Z}}
+\newcommand{\setZn}[1][n]{\setZ_{#1}}
+\newcommand{\setB}{\setF{2}}
+\newcommand{\setBp}[1][z]{\setB[#1]}
+\newcommand{\setP}{\setF{p}}
+\newcommand{\setA}{\mleft[0,2\pi\mright)}
+\newcommand{\setRn}[2]{\setR{}^{#1\times{}#2}}
+
+
+\newcommand*\Let[2]{\State #1 $\gets$ #2}
+
+\NewPrefixPostfixDelimiter{\siml}{\mathop{\textnormal{sim}}}{\bb}{}
+\NewPrefixPostfixDelimiter{\dpr}{\mathop{\textnormal{dp}}}{\bb}{}
+\DeclareMathOperator{\ew}{ew}
+
+% Defining command constructs from algorithm2e.sty package
+% algorithm2e.sty package cannot be used due to conflicts with IEEEtran style
+\newcommand{\KwTo}{\textbf{to}	}
+\newcommand{\KwIn}[1]{\textbf{Input:} #1}
+\newcommand{\KwOut}[1]{\textbf{Output:} #1}
+% Redefining comment style
+\algnewcommand{\LineComment}[1]{\State $//$ \emph{#1}}
+
+
+% Auxiliary shorthand definitions
+\newcommand{\argminimizeol}[3]{%
+	\argmin_{#1} \, #2 \quad \textnormal{subject to} \quad #3%
+}
+\newcommand{\argminimize}[3]{%
+	\begin{aligned}
+	& \argmin_{#1} & & #2 \\
+	& \textnormal{subject to} & & #3
+	\end{aligned}
+}
+\newcommand{\argmaximizeol}[3]{%
+	\argmax_{#1} \, #2 \quad \textnormal{subject to} \quad #3%
+}
+\newcommand{\argmaximize}[3]{%
+	\begin{aligned}
+	& \argmax_{#1} & & #2 \\
+	& \textnormal{subject to} & & #3
+	\end{aligned}
+}
+
+\newcommand{\setU}{\mleft[0,1\mright]}
+\newcommand{\tablesname}{Tables}
+%\newcommand{\tobs}{t_{\textnormal{obs}}}
+%\newcommand{\tnovel}{\tau_{\textnormal{nov}}}
+%\newcommand{\train}{\textnormal{train}}										% Conflict with related command in math_commands.tex
+%\newcommand{\test}{\textnormal{test}}											% Conflict with related command in math_commands.tex
+\newcommand{\gt}{\textnormal{gt}}
+
+% math mode color construct
+\def\mathcolor#1#{\@mathcolor{#1}}
+\def\@mathcolor#1#2#3{%
+	\protect\leavevmode
+	\begingroup
+		\color#1{#2}#3%
+	\endgroup
+}
+
+\newlength{\tmp}
+\newcommand*{\getlength}[2]{%
+	\settowidth{\tmp}{#2}
+	\pgfmathsetmacro#1{\tmp}
+}
+
+%\newcommand{\sref}[1]{(\hyperref[#1]{S\ref{#1}})}
+
+
+% set font in definitions to roman
+%\let\oldDefinition\Definition
+%\RenewDocumentCommand{\Definition}{o}{%
+%	\IfNoValueTF{#1}
+%	{\oldDefinition}
+%	{\oldDefinition[#1]}%
+%\rm
+%}
+
+\endinput

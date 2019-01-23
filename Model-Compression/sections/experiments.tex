@@ -1,0 +1,387 @@
+\documentclass[../main]{subfiles}
+
+\begin{document}
+
+\section{Experiments}
+Our goal is to perform data driven model compression of neural network models. We formulate the problem as a neural architecture search problem aimed at finding architectures with high accuracy, low inference time and small memory footprint. One important point point to note here is that we do not use any proxies for inference time (like FLOPS) but instead we use actual inference time on system. For the memory footprint, we use number of parameters present in the model.
+Formally, given a model, we define the reward functions for the in terms of the accuracy (a), inference time(t) and compression (c): 
+
+
+
+
+
+The results obtained from the changes are tabulated in table 1.
+% \begin{table*}
+%  \caption{Experimental Summary on Cifar 100 dataset}
+%  \centering
+%  \begin{tabular}{|r|p{1.3cm}|p{2cm}|p{1.8cm}|p{2cm}|}
+%  \hline
+%  Description\hspace{1 cm} & Accuracy & Compression & Inference Time & Per image inference Time\\
+ 
+ 
+%  \hline 
+%  Insects [2500 Images] & 0.54 & 0.52 & 0.078 & pp \\ 
+%  \hline 
+%  Insects [Transferred][Fruits] & 0.542 & 0.189 & 0.06139 & pp \\
+%  \hline 
+%  Insects + high epoch & 0.6687 & 0.189/0.47 & 0.0666 & pp \\
+%  \hline 
+%  Fruits & 0.68 & 0.189 & 0.062 & pp \\
+%  \hline 
+%  Fruits [Transferred][Insects] & 0.672 & 0.189 & 0.062 & pp \\
+%  \hline 
+%   \end{tabular}
+%  \end{table*}
+
+% \begin{table*}
+% \caption{Experimental Summary on Cifar-10 dataset}
+% \centering
+% \begin{tabular}{|c|p{1.3cm}|p{2cm}|p{1.8cm}|p{2cm}|}
+%  \hline
+%  Description & Accuracy & Compression & Inference Time & Per image inference Time\\
+%  \hline
+%  $1/\log{(\text{Time})}$ & 0.7217 & 0.21987392 & 1.20781684 & pp \\
+%  \hline
+%  $R_a \times  R_c \times  1/\log{(\text{Time})}$ & 0.7561 & 0.366665  & 2.9950247 & pp \\
+%  \hline
+%  $T(R_a)$\hspace{2pt} $\times$ \hspace{2pt}$R_c$ & 0.721 & 0.29562 & 1.41918 & pp \\
+%  \hline 
+%  $T(R_a)$\hspace{2pt} $\times$\hspace{2pt} $T(Time)$\hspace{2pt} *\hspace{2pt} $R_c$ & 0.7554 & 0.39 & 1.44365 & pp \\
+%  \hline
+%  $T(R_a)\hspace{2pt} \times\hspace{2pt}$ $T(Time)$ & 0.7172 & 0.18 & 1.19 & pp\\
+%  \hline
+% \end{tabular}
+% \end{table*}
+
+\begin{table*}
+\caption{Experimental Summary of Resnet18 on Cifar-10 dataset}
+\centering
+\begin{tabular}{|c|p{1.3cm}|p{2cm}|p{1.8cm}|p{2cm}|}
+ \hline
+ Description & Original & N2N & Our Reward & Our Reward + Loss\\
+ \hline
+ Accuracy  & 0.83 & 0.82 & 0.81 & 0.85 \\
+ \hline
+ Inference Time (Sec) & 5.46 & 2.21 & 1.40 & 1.14 \\
+ \hline
+ Compression & 1x & 1.65x & 2.56x & 3.53x \\
+ \hline 
+ Memory (MB) & 43.1 & 26.1 & 16.9 & 12.2 \\
+ \hline
+\end{tabular}
+\end{table*}
+
+\begin{table*}
+\caption{Experimental Summary of Resnet18 on Cifar-100 dataset}
+\centering
+\begin{tabular}{|c|p{1.3cm}|p{2cm}|p{1.8cm}|p{2cm}|}
+ \hline
+ Description & Original & N2N & Our Reward & Our Reward + Loss\\
+ \hline
+ Accuracy  & 0.72 & 0.58 & 0.63 & 0.57 \\
+ \hline
+ Inference Time (Sec) & 2.71 & 1.56 & 1.68 & 1.65 \\
+ \hline
+ Compression & 1x & 4x & 2.17x & 3.3x \\
+ \hline 
+ Memory (MB) & 43 & 11 & 20 & 13 \\
+ \hline
+\end{tabular}
+\end{table*}
+
+\begin{table*}
+\caption{Experimental Summary of VGG-11 on Cifar-10 dataset}
+\centering
+\begin{tabular}{|c|p{1.3cm}|p{2cm}|p{1.8cm}|p{2cm}|}
+ \hline
+ Description & Original & N2N & Our Reward & Our Reward + Loss\\
+ \hline
+ Accuracy  & 0.9 & 0.856 & 0.81 & 0.80 \\
+ \hline
+ Inference Time (Sec) & 2.26  & 1.49 & 1.13 & 1.14 \\
+ \hline
+ Compression & 1x & 9x & 20x & 14x \\
+ \hline 
+ Memory (MB) & 36 & 3.9 & 1.8 & 2.5 \\
+ \hline
+\end{tabular}
+\end{table*}
+
+\subsection{Policy Generalization}
+
+We also wanted to test the generalizability of the policy learnt by the controller on different datasets and across different models. In the real world, datasets are very often very large, leading to prohibitively long times to perform the neural architecture search. Something we noticed was that in the real world, data is not distributed evenly across people. Different sets of people have diffenent types of data. So to test whether the controller truly learnt to compress, we must verify that after training on one dataset, we get similar accuracy on another dataset. This would mean that the policy learnt on one dataset could be used to bootstrap the learning of the policy on another related dataset. To test this, we devised an experiment where we split the training dataset into equal sized subsets. We do not spilt into subsets randomly, but we choose the subsets such that the subsets are drawn from similar distributions. For example, we divide the cifar 10 dataset into two subsets, one for Animals and one for Vehicles. We then take the controller learnt on one datset on the other dataset. The results for this experiment are tabulated in table 2. 
+
+We train the controller for 100 iterations, and in each iteration we train for 20 epochs. We do not train till convergence for the sake of time. In all cases, we used the 4th loss function from the top of table 1.% TODO: Mention exact numbers for droupout, momentum, etc.
+In each iteration, we train the model using Knowledge Distillaiton, where the we use the original parent model from which we compress as the teacher model. The KD loss is a weighted average of the difference between the teacher output and student output, and the student and target ouput. 
+
+
+% \begin{table}
+%     \centering
+%     \begin{tabular}{c|c}
+%          &  \\
+%          & 
+%     \end{tabular}
+%     \caption{Caption}
+%     \label{tab:my_label}
+% \end{table}
+
+% TODO: Highlight the important results, and remove any redundant results
+% \begin{table}
+% \caption{Experimental Summary on Cifar-10 dataset}
+% \centering
+% \begin{tabular}{|c|p{1.3cm}|p{2cm}|p{1.8cm}|p{2cm}|}
+%  \hline
+%  Description & Accuracy & Compression & Inference Time & Per image inference Time\\
+%  \hline
+%  $1/\log\text{Time}$ & 0.7217 & 0.21987392 & 1.20781684 & pp \\
+%  \hline
+%  $R_a * R_c * 1/\log\text{Time}$ & 0.7561 & 0.366665  & 2.9950247 & pp \\
+%  \hline
+%  $T(R_a) * R_c$ & 0.721 & 0.29562 & 1.41918 & pp \\
+%  \hline 
+%  $T(R_a) * T(Time) * R_c$ & 0.7554 & 0.39 & 1.44365 & pp \\
+%  \hline
+%  $T(R_a) * T(Time)$ & 0.7172 & 0.18 & 1.19 & pp\\
+%  \hline
+%  \multicolumn{5}{|c|}{KL Divergence in Resnet  $[Animals]$ }\\
+%  \hline
+%  At high temperature: $T(R_a) * \text{T(Time)} * R_c$ & 0.732 & 0.32 & 0.834 & 0.14 \\
+ 
+%  At low temperature: $T(R_a) * \text{T(Time)} * R_c$ & 0.69 & 0.5 & 1.0 & 0.166 \\
+%  \hline
+%  [Vehicles] [High Temperature] & 0.87 & 0.5 & 0.648 & 0.162\\
+%  \hline
+%  Policy Transfer: Animals to Vehicles & 0.78 & 0.2 & 0.524 & 0.125+\\
+%  \hline
+%  Policy Transfer: Vehicles to Animals & 0.701 & 0.32 & 0.86 & 0.14\\
+% \hline 
+%  Vehicles + New Loss & 0.876 & 0.54 & 0.5151 & 0.5151/3 = 0.1717 \\
+% \hline 
+%  Vehicles + New Loss & 0.86 & 0.45 & 0.47 & 0.47/3 = 0.1717 \\
+% \hline 
+%  Animals + New Loss & 0.738 & 0.52 & 0.48 & 0.48/3 = 0.16 \\
+% \hline 
+%  Vehicles + Swapped Controller & 0.81 & 0.18 & 0.38 & 0.38/3 = 0.13\\
+% \hline 
+%  Vehicles + Swapped Controller & 0.828 & 0.43 & 0.39 & 0.39/3 = 0.13\\
+% \hline 
+%  Animals + Swapped Controller & 0.72 & 0.50 & 0.44 & 0.44/3 = 0.146\\
+%  \hline 
+%  Animals + Swapped Controller & 0.65-0.69 & 0.184 & 0.40 & 0.40/3 = 0.133\\
+%  \hline
+% \end{tabular}
+% \end{table}
+
+\begin{table*}
+\caption{Experimental Summary of Resnet18 on Cifar-10 dataset}
+\centering
+\begin{tabular}{|c|p{2.3cm}|p{2.5cm}|p{1.8cm}|p{2cm}|}
+ \hline
+ Subset & Original Model Accuracy & Compressed Model Accuracy & Inference Time(Sec) & Compression\\
+ \hline
+ Animals & 0.813 & 0.813 & 0.386 & 5.23x \\
+ \hline
+ Vehicles & 0.837 & 0.938  & 0.503 & 3.33x \\
+ \hline
+ Policy Transfer: Vehicles to Animals  & 0.813 & 0.808 & 0.388 & 5x \\
+ \hline 
+ Policy Transfer: Animals to Vehicles & 0.837 & 0.913 & 0.37 & 6.36x \\
+ \hline
+\end{tabular}
+\end{table*}
+
+\begin{table*}
+\caption{Experimental Summary of VGG-11 on Cifar-10 dataset}
+\centering
+\begin{tabular}{|c|p{2.3cm}|p{2.5cm}|p{1.8cm}|p{2cm}|}
+ \hline
+ Subset & Original Model Accuracy & Compressed Model Accuracy & Inference Time(Sec) & Compression\\
+ \hline
+ Animals & 0.88 & 0.79 & 0.75 & 14x \\
+ \hline
+ Vehicles & 0.94 & 0.87  & 0.41 & 33x \\
+ \hline
+ Policy Transfer: Vehicles to Animals  & 0.88 & 0.79 & 0.68 & 20x \\
+ \hline 
+ Policy Transfer: Animals to Vehicles & 0.94 & 0.95 & 0.45 & 20x \\
+ \hline
+\end{tabular}
+\end{table*}
+
+From the results, we see that the model using the transferred policy performs worse than when the model is learnt from scratch. However, the loss in accuracy is not very great (only about 5\%) and could very well be attributed to the shorter time for which we train our controller. The models outputted are all the top performing models we get after running our architecture search algorithm. \\
+We also notice that the difference in accuracy between original and swapped controller is much greater for some classes than it is for others. This might be because the intra=class variance of the selected dataset on which we train is high, and with limited amount of data the classifier performs in acceptable ranges. 
+
+
+
+%\section{Experiments}
+%In this experiment, we have tried running N2N compression on the CIFAR 10 and CIFAR100 datasets by modifying the reward function.
+%T(R\_a) and T(R\_c) represents the transformation of the reward function with respect to the accuracy and compression ratio of the compressed model.
+%Loss function has been modified and KL Divergence loss has been used, which is calculated as weighted average of difference between teacher output and student output and student output and target.
+%
+%
+%Experiments have been run on Vehicles and the Animals dataset by using three different loss function.
+%Enhancement has been observed in accuracy, compression and inference time in some cases.
+%
+%Policy transfer has been experimented by learning the policy on one subset training dataset, We analysed the reusablility of policy learnt on animals to compress the model learnt on vehicles.
+%Equivalent accuracy along with a reasonable compression ratios is obtained, but the time to converge in most cases has been reduced, cases in which convergence is not obtained , the results are consistent for the learnt policy as well 
+%
+%The Controller or policy learner is a Bi- directional LSTM which c
+%
+%On CIFAR100, policy transfer experiments have been run on Insect and Fruit datasets.
+%2500 images have been taken for the policy training.
+%Number of epochs have been increased for the Insect dataset and the changes in the accuracy, compression and the inference time has been observed in affirmative.
+%\begin{table}
+%\caption{Experimental Summary on Cifar 100 dataset}
+%\centering
+%\begin{tabular}{|r|p{1.3cm}|p{2cm}|p{1.8cm}|p{2cm}|}
+%\hline
+%Description\hspace{1 cm} & Accuracy & Compression & Inference Time & Per image inference Time	\\
+%\hline 
+%Insects [2500 Images] & 0.54 & 0.52 & 0.078 & pp	\\
+%\hline 
+%Insects [Transferred][Fruits] & 0.542 & 0.189 & 0.06139 & pp	\\
+%\hline 
+%Insects + high epoch & 0.6687 & 0.189/0.47 & 0.0666 & pp	\\
+%\hline 
+%Fruits & 0.68 & 0.189 & 0.062 & pp	\\
+%\hline 
+%Fruits [Transferred][Insects] & 0.672 & 0.189 & 0.062 & pp	\\
+%\hline 
+%\end{tabular}
+%\end{table}
+%\begin{table}
+%\caption{Experimental Summary on Cifar 100 dataset}
+%\centering
+%\begin{tabular}{|r|p{1.3cm}|p{2cm}|p{1.8cm}|p{2cm}|}
+%\hline
+%Description\hspace{1 cm} & Accuracy & Compression & Inference Time & Per image inference Time	\\
+%
+%
+%\hline 
+%Insects [2500 Images] & 0.54 & 0.52 & 0.078 & pp	\\
+%\hline 
+%Insects [Transferred][Fruits] & 0.542 & 0.189 & 0.06139 & pp	\\
+%\hline 
+%Insects + high epoch & 0.6687 & 0.189/0.47 & 0.0666 & pp	\\
+%\hline 
+%Fruits & 0.68 & 0.189 & 0.062 & pp	\\
+%\hline 
+%Fruits [Transferred][Insects] & 0.672 & 0.189 & 0.062 & pp	\\
+%\hline 
+%\end{tabular}
+%\end{table}
+%
+%
+%
+%\begin{table}
+%\caption{Experimental Summary on Cifar-10 dataset}
+%\centering
+%\begin{tabular}{|c|p{1.3cm}|p{2cm}|p{1.8cm}|p{2cm}|}
+%\hline
+%Description & Accuracy & Compression & Inference Time & Per image inference Time	\\
+%\hline
+%$1/\log{(\text{Time})}$ & 0.7217 & 0.21987392 & 1.20781684 & pp	\\
+%\hline
+%$R_a * R_c * 1/\log{(\text{Time})}$ & 0.7561 & 0.366665  & 2.9950247 & pp	\\
+%\hline
+%$T(R_a) * R_c$ & 0.721 & 0.29562 & 1.41918 & pp	\\
+%\hline 
+%$T(R_a) * T(Time) * R_c$ & 0.7554 & 0.39 & 1.44365 & pp	\\
+%\hline
+%$T(R_a) * T(Time)$ & 0.7172 & 0.18 & 1.19 & pp	\\
+%\hline
+%\multicolumn{5}{|c|}{KL Divergence in Resnet  $[Animals]$ }	\\
+%\hline
+%At high temperature: $T(R_a) \text{T(Time)} * R_c$ & 0.732 & 0.32 & 0.834 & 0.14	\\
+%
+%At low temperature: $T(R_a) * \text{T(Time)} * R_c$ & 0.69 & 0.5 & 1.0 & 0.166	\\
+%\hline
+%[Vehicles] [High Temperature] & 0.87 & 0.5 & 0.648 & 0.162	\\
+%\hline
+%Policy Transfer: Animals to Vehicles & 0.78 & 0.2 & 0.524 & 0.125+	\\
+%\hline
+%Policy Transfer: Vehicles to Animals & 0.701 & 0.32 & 0.86 & 0.14	\\
+%\hline 
+%Vehicles + New Loss & 0.876 & 0.54 & 0.5151 & 0.5151/3 = 0.1717	\\
+%\hline 
+%Vehicles + New Loss & 0.86 & 0.45 & 0.47 & 0.47/3 = 0.1717	\\
+%\hline 
+%Animals + New Loss & 0.738 & 0.52 & 0.48 & 0.48/3 = 0.16	\\
+%\hline 
+%Vehicles + Swapped Controller & 0.81 & 0.18 & 0.38 & 0.38/3 = 0.13	\\
+%\hline 
+%Vehicles + Swapped Controller & 0.828 & 0.43 & 0.39 & 0.39/3 = 0.13	\\
+%\hline 
+%Animals + Swapped Controller & 0.72 & 0.50 & 0.44 & 0.44/3 = 0.146	\\
+%\hline 
+%Animals + Swapped Controller & 0.65-0.69 & 0.184 & 0.40 & 0.40/3 = 0.133	\\
+%\hline
+%\end{tabular}
+%\end{table}
+%
+%\subsection{Discussion}
+%Most of the layer removal happens from the first few layer , implying the presence of redundant information for the various subset of dataset, and is dropped by the policy.
+%The process removes redundant layer on the basis of data input, this reinforcement scenario is similar to hyperparameter search [cite NAS].
+%Policy learnt on dataset can be used to speed up the compression of the model for other dataset as well, through experiments it is evident that there is scope of learning a global policy which helps to improve compression with little drop in accuracy.
+%Some classes perform better, which might be due to the fact that the intra-class variance of the selected dataset may be high and with limited amount of data, the trained classifier performs in acceptable ranges.
+%Each Architecture is trained using Knowledge distillation.
+%Loss function is the KL divergence loss which is calculated as weighted average of difference between teacher output and student output , and student output and target.
+%
+%
+%\section{Experiments}
+%Our goal is to do data specific model compression of deep learning models.
+%We believe that data specific compression is superior to ad-hoc compression because it allows the model architecture to be tailored for the specific distribution of data from which the dataset is drawn from.
+%Intuition suggests that since the model only needs to perform well on samples drawn from the dataset distribution, we believe that we can compress more while still maintaining high accuracy figures.
+%To verify this claim, we used N2N to compress ResNet-18 on different sets of data.
+%To model our situation, we divided the CIFAR10 and CIFAR100 datasets to form smaller subset datasets.
+%These smaller subset datasets contain classes that are 'similar'; for example, we split CIFAR10 to two datasets, one which contained animals (bird, cat, dog, deer, etc) and another which contained vehicles (airplane, truck, ship, automobile).
+%\begin{table}[h!]
+%    \centering
+%    \begin{tabular}{|c|c|c|}
+%        \hline
+%         Description & Accuracy & Num params	\\
+%         Vehicles & 91 & 1.8M	\\
+%         CIFAR10 & 91 & 2.3M	\\
+%         \hline
+%    \end{tabular}
+%    \caption{}
+%    \label{tab:my_label}
+%\end{table}
+%
+%---Add another example---
+%
+%Table 4 gives the results of N2N on Vehicles and full CIFAR10.
+%We see that we get comparable accuracy on the vehicles subset with a decrease in number of parameters.
+%
+%\subsection{Reward functions}
+%The original N2N paper uses a combination of accuracy and compression to create a reward function.
+%However, we noticed that models with fewer parameters need not necessarily have the fastest inference time.
+%To remedy this, we add an additional time factor in our reward function.
+%The final functional form of our reward are as follows.
+%
+%The following reward curves are used to represent the effect of :
+%
+%\begin{itemize}
+%    \item Reward v/s Accuracy \[ 
+%    \begin{cases} 
+%      \ln{\frac{1+e^{a-a_{th}}}{2}} & a_{th}\leq a\leq 1	\\
+%      \frac{a}{2} & 0 \leq a \leq a_{th} 
+%   \end{cases}
+%\] 
+%    \item Reward v/s Time $$ R(t) =  \frac{\mathrm{1} }{\mathrm{1} + e^{(t-t_{th})*10} }  $$ 
+%    \item Reward v/s Compression $$R(c) = c * (2 -c)$$
+%    \item $a$ is  actually ratio of $\frac{Accuracy}{BaselineAccuracy}$ , $a_{th}$ is set to 0.65 and $t_{th}$ i set to 3 sec , baseline accuracy is calculated and compression is defined as $\frac{number of parameters of student}{\#number of of parameters of teacher}$
+%\item New Reward v/s Accuracy \[ 
+%    \begin{cases} 
+%      \ln{\frac{1+e^{a-a_{th}}}{2}} & 0\leq a\leq a_{th1}	\\
+%      \frac{a}{2} & a_{th1} \leq a \leq a_{th2} 
+%   \end{cases}
+%\] 
+%\end{itemize}
+
+
+\bibsubfile
+{plainnat}
+{bibs/sub}
+
+\end{document}

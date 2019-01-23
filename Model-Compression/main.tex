@@ -1,0 +1,93 @@
+\documentclass[twoside]{article}
+
+\makeatletter
+\providecommand*{\input@path}{}
+\edef\input@path{{styles/}{../styles/}\input@path}
+\makeatother
+
+\usepackage{aistats2019}
+%\usepackage[accepted]{aistats2019}
+% Optional math commands from https://github.com/goodfeli/dlbook_notation.
+\input{math_commands.tex}
+\usepackage{AuxCommandsICLR}
+\usepackage{csvsimple}
+
+\usepackage[round]{natbib}
+\renewcommand{\bibname}{References}
+\renewcommand{\bibsection}{\subsubsection*{\bibname}}
+
+%TODO: try setting \graphicspath{} in preamble for subfiles and within document body for main file.
+\graphicspath{{images/pdf/}{../images/pdf/}{images/tikz/}{../images/tikz/}{images/png/}{../images/png/}}
+\usepackage{subfiles}
+
+
+\begin{document}
+	\twocolumn[
+		\aistatstitle{Data Driven compression of Deep Neural Networks using Reinforcement Learning}
+%		\aistatsauthor{%
+%			Ramit~Pahwa \And
+%			Manoj~Ghuhan~A \And
+%			Siddarth~Krishnamoorthy \And
+%			Rohit~Saxena \And
+%			Ankur~Garg \And
+%			Sunav~Choudhary
+%		}
+%		\aistatsaddress{%
+%			Indian Institute of Technology, Kharagpur \And
+%			Adobe Research \And
+%			University of Texas, Austin
+%		}
+	]
+
+	\runningtitle{Data Driven Compression of DNNs}
+%	\runningauthor{Pahwa, Ghuhan~A, Krishnamoorthy, Saxena, Garg, Choudhary}
+
+%	\author{Ramit~Pahwa \\
+%	Dept.~of Mathematics and Computing\\
+%	Indian Institute of Technology, Kharagpur\\
+%	India\\
+%	\texttt{ramitpahwa123@gmail.com} \\
+%	\And
+%	Siddarth~Krishnamoorthy \\
+%	Dept.~of Computer Science\\
+%	Indian Institute of Technology, Kanpur\\
+%	India\\
+%	\texttt{siddarrth.k@gmail.com} \\
+%	\And
+%	Rohit~Saxena \\
+%	Dept.~of Mathematics and Computing\\
+%	Indian Institute of Technology, Roorkee\\
+%	India\\
+%	\texttt{saxenarrohit@gmail.com} \\
+%	\And
+%	Ankur~Garg \\
+%	Dept.~of Computer Science\\
+%	University of Texas, Austin\\
+%	USA\\
+%	\texttt{ankurgarg101@gmail.com} \\
+%	\And
+%	Manoj~Ghuhan~A \& Sunav~Choudhary \\
+%	Adobe Research\\
+%	Bangalore, India\\
+%	\texttt{\{ghuhana,schoudha\}@adobe.com}
+%	}
+	
+	\renewcommand{\bibsubfile}[2]{}
+	
+	\subfile{sections/abstract}
+	\subfile{sections/introduction}
+	\subfile{sections/related-work}
+	\subfile{sections/approach}
+	\subfile{sections/experiments}
+	\subfile{sections/conclusions}
+
+%	\subfile{sections/acknowledgements}
+
+\bibliographystyle{plainnat}
+\bibliography{bibs/sub}
+
+\end{document}
+
+
+%TODO: Final checks
+% \citet{} vs citep{}

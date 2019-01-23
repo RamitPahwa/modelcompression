@@ -1,0 +1,149 @@
+\documentclass[../main]{subfiles}
+\begin{document}
+
+\section{Approach}
+Our approach closely follows the N2N compression work in \citet{ashok2017n2n}.
+Below, we reproduce some details from \citet{ashok2017n2n} that are necessary for overall readability.
+
+The sequential decision making process to obtain a reduced architecture from the teacher network is modeled as a Markov Decision Process (MDP).
+The state space $\sS$ comprises of all the architectures obtainable by reducing from the teacher model.
+There are two different actions possible in the action set $\sA$.
+First, being a binary decision $a_{t} \in \cc{0,1}$ of weather to keep a particular layer or remove the layer from the teacher to obtain a reduced architecture, this action is \textit{layer removal action}.
+The second action is deciding the percentage or amount by which the parameters are to be reduced $a_{t} \in \cc{0.1, 0.2, \dotsc, 1.0}$, referred to as \textit{layer shrinkage action}.
+More details of the MDP are provided in \appendixname~\ref{app:A}.
+The policy is contingent on the type of action to be executed and is described below.
+
+
+\subsection{Policy Network}
+	\label{sssec:num1}
+The network architecture for policy, depends upon the action to be undertaken.
+Each layer in the teacher network is characterized by the following tuple:
+\begin{equation}
+    x_{t} = (k, s, p, n, s_{start}, s_{end})
+\end{equation}
+where $k$ kernel size, $s$ stride, $p$ padding and $n$ number of outputs (filters or connections).
+To model more complex architectures, such as ResNet, $s_{start}$ and $s_{end}$ are used to inform the policy network about skip connections.
+Then this characteristic information about the layer is fed into an LSTM unit to obtain latent states $h_{t}$.
+The difference in the network architecture arises as the binary decision to keep a particular layer $t$ of the teacher architecture depends upon the next $t+1$ and the previous layer $t-1$.
+Thus a Bi-direction LSTM module is used to model the system.
+Difference in the architecture is illustrated in \figurename~\ref{fig:2}
+%TODO ADD figure Bidirection LSTM and LSTM 
+The latent state of previous layer $h_{t-1}$, next layer $h_{t+1}$ along with the current layer information tuple $x_{t}$ is utilized while deciding the presence or absence of the layer under consideration.
+Formally the policy to keep or remove a layer is denoted by $\pi_{remove}(a_{t}|h_{t-1}, h_{t+1}, x_{t})$.
+In the layer shrinkage network a single LSTM unit is used to obtain the hidden state $h_{t}$ which along with the previous action $a_{t-1}$ is utilized in deciding the action for the current layer under consideration $a_{t}$.
+This process makes the training faster and is more efficient than pruning methods \citep{srinivas2015data,guo2016dynamic,anwar2017structured}.
+The policy is denoted by $\pi_{shrinkage}\bb{a_{t}|a_{t-1}, h_{t}, x_{t}}$.
+The produced network architecture needs to satisfy the user specific device restriction, to model this we propose a \textit{thresholded reward function} to specify bounds on the accuracy $a$, size $c$ and inference latency $l$.
+This enables us to search for efficient network architectures in a systematic manner.
+The architectures searched satisfy accuracy requirements while still having realistic size and inference latency.
+The next section describes in detail the construction of the reward function $R$.
+
+%TODO : Shift to appendix A
+% \subsection{Markov Decision Process}
+% The system is visualized as a sequential process of finding a reduced architecture as decision making process.
+% The decision making process is modelled as \textbf{Markov Decision Process (MDP)}.
+% Formally, as MDP defined as tuple $\cc{\sS, \sA, \sT, r, \gamma}$\\ \\
+% \textbf{States:} The state set $\sS$ has all the possible reduced architectures that derived from the teacher model.
+% Example a reduced student architecture may arise from removal of layer or a convolutional filter from the original model.\\ \\
+% \textbf{Actions:} $\sA$ is set of actions we can take to transform one architecture to another.
+% The approach has two set of actions defined as layer removal actions and \textbf{also layer parameter reduction action}.
+% \textbf{not sure weather we are including shrikage}.\\ \\
+% \textbf{Transition Function:} $T\fcolon \sS \times \sA \rightarrow \sS$ is the deterministic transition function, as an action is bound to produce a reduced architecture with a probability one.\\ \\
+% \textbf{Discount Factor}: $\gamma = 1 $ is the discount factor, as all the rewards obtained contribute equally to the final reward.\\ \\
+% \textbf{Reward}: The Reward function $R\fcolon \sS \rightarrow \R$ can be considered as score for the model $m$.
+% Here all intermediate states which represent incomplete network architecture are assigned a reward of 0.
+
+\subsection{Reward Functions}
+The problem is formulated as constrained optimization search aimed at finding reduced CNN architectures having high accuracy, small memory footprint (number of parameter) as well as low inference latency.
+Unlike previous work which optimize for indirect metrics such as FLOPS, we consider the inference latency on a single CPU as the measure of inference latency of the mobile, this gives us measure of what is actually achievable on a mobile device.
+Given a model $m$ we have its accuracy $a(m)$, model size $c(m)$, inference time $l(m)$.
+We also have device specific restriction and performance restriction which needs to be accounted for as constraints in the optimization problem, we do this by applying transformation to the relative accuracy $a = a(m)/A$, where $A$ is the Accuracy of the teacher, compression ratio $c(m) =  1 -\frac{\#parameter(student)}{\#parameter(Teacher)}$, relative inference time $l = l(Student)/l(Teacher) $are described as follows:
+\begin{itemize}
+	\item Accuracy transformation with required accuracy as the threshold $a_{th}$ of the transformation.
+	$R_1\fcolon A \rightarrow [0,1]$, which normalizes as well enforces threshold to prevent exploration in undesired region of the search space.
+	\begin{equation}
+	    R_1(a) =    \begin{cases}
+		                \log \frac{1}{2}\bb{1 + \exp\bb{a-a_{th}}}  &   a_{th} \leq a \leq 1	\\
+		                \frac{a}{2}                                 &   0 \leq a \leq a_{th}
+		            \end{cases}
+	\end{equation}
+
+	\item Latency transformation with a threshold $l_{th}$ of the transformation.
+	$R_2\fcolon L \rightarrow [0,1]$
+	\begin{equation}
+		R_2(l) =  \inv{\bb{1 + \exp\bb{10 \cdot (l-l_{th})}}}
+	\end{equation}
+
+	\item Compression transformation $R_3\fcolon C \rightarrow [0,1]$, thresholding is not needed as implicitly threshold have been placed on inference time.
+	$R_3(c) = c \cdot (2 -c)$
+	\item The final reward which need to be maximized for the reinforcement process is defined as:
+	$R \bb{m} = R_1 \bb{a} \cdot R_2 \bb{l} \cdot R_3 \bb{c} $
+\end{itemize}
+To enforce the policy to search for architecture satisfying the set thresholds on the reward, we set further constraints in similar fashion as suggested by \citep{ashok2017n2n}.
+Here all intermediate states which represent incomplete network architecture are assigned a reward of 0.
+We have empirically found the appropriate threshold given a particular state of the art Teacher model which need to be compressed.
+This improves the efficiency of searching the student architecture among the teacher architecture.
+
+\subsection{Compressed Model Search }
+Similar to previous work by \cite{ashok2017n2n}, under this assumption of MDP the reinforcement learning task is to learn an optimal policy $\pi : S \rightarrow A $, such that is maximizes the Total Reward, given by:
+\begin{equation}
+    R\bb{\Vec{s}} = \sum_{i=0}^{L=\card{\Vec{s}}} r(s_{i}) = r(s_{L})
+\end{equation}
+We take a policy gradient reinforcement learning approach.
+As the obtained architectures have \textit{high performance, low inference latency and small size} across all are experiments on dataset CIFAR10, CIFAR100 and Caltech-256 and architecture families VGG and ResNet.
+
+
+\subsection{Optimization}
+
+The parameters of the policy network characterized by $\theta$ are optimized to obtain a efficient policy to compress the teacher model.
+The optimization is formulated to maximize the \textit{expected reward} obtained from the newly compressed architecture defined as :
+\begin{equation}
+    \theta^{*} = \arg \max_{\theta} E_{\bb{\Vec{s}, \Vec{a}} \sim p_{\theta\bb{\Vec{s}, \Vec{a}}}} \bb{R\bb{\Vec{s}}}
+\end{equation}
+\begin{equation} 
+    J \bb{\theta} = E_{\bb{\Vec{s}, \Vec{a}} \sim p_{\theta\bb{\Vec{s}, \Vec{a}}}} \bb{R\bb{\Vec{s}}}
+\end{equation}
+where $R\bb{\Vec{s}}$ is total reward obtained.
+The optimization process can be estimated using REINFORCE policy gradient used in \citep{williams1992simple}, the continuous nature of our proposed reward transformation improves our search efficiency as it prevents exploding gradient.
+The gradient is estimated as :
+\begin{equation}
+    \nabla_{\theta}  J \bb{\theta} = \nabla_{\theta} E_{\bb{\Vec{s}, \Vec{a}} \sim p_{\theta\bb{\Vec{s}, \Vec{a}}}} \bb{R\bb{\Vec{s}}}
+\end{equation}
+\begin{equation}
+     \nabla_{\theta}  J \bb{\theta} \approx \frac{1}{N} \sum_{i = 1}^{N} \sum_{t = 1}^{T} \nabla_{\theta} \log{p_{\theta}\bb{a_{i,t}, s_{i,t}}} \bb{R\bb{\Vec{s}}}
+\end{equation}
+here $N$ represents number of produced architectures, $T$ represents the length of trajectory.
+The above equation has high variance, to normalize that we exponential moving average as the baseline $b$ subtract it from our total reward $R\bb{\Vec{s}}$.
+This helps improve stability of the estimated gradients.
+
+
+\subsection{Knowledge Distillation}
+Student model architectures are trained utilizing both the outputs of the teacher models and the true label.
+Instead of just using the un-normalized log probabilities (logits) of the teacher model, which outperforms the training process used in \cite{ashok2017n2n}.
+Training incorporating dark knowledge \cite{hinton2015distilling} that helps student to mimic the relationships learned by the teacher model.
+The loss function is trained as combination of \textbf{hard} and \textbf{soft} targets, giving more weightage to transferring the dark knowledge.
+If $y_{i}$ are output logits of the teacher model of the $i^{th}$ training example, $y_{true}$ is the true labels.
+Then the loss function is described below as:
+\begin{align}
+    \mathcal{L} & = \lambda\cdot\mathcal{L}_{hard} + \bb{1-\lambda}\cdot\mathcal{L}_{soft}   \\
+    \mathcal{L}_{hard} & = D_{KL}\bb{f(x; W) \,\Vert\, y_{true}}    \notag \\
+    & = \sum_{i} f(x^{i}; W) \cdot \log\frac{f(x^{i}; W)}{y_{true}(i)}   \\
+    \mathcal{L}_{soft} & = H\bb{f(x; W), y} = - \sum_{i} f(x^{i}; W) \cdot \log{y_{i}}
+\end{align}
+
+Through experimentation we have fixed value of $\lambda$ as \textbf{See value of lambda in code}, thus making the student model to mimic the behaviour of the teacher model simultaneously fine-tuning the student architecture towards the true labels.
+
+\subsection{Transfer Learning}
+
+Unlike in the previous literature \citep{ashok2017n2n,zoph2017learning} of transferring knowledge between different architecture families, we through our experiments show transfer-ability of the learnt parameter of the policy across different subset of data.
+This not only provides a \textit{warm start} to the policy network but also improves upon the time to converge to optimal model architectures for given dataset.
+The time to convergence to optimal architecture is reduced by a factor of 5.
+Hence allowing us to get high performing compressed model architectures which satisfy user specific device thresholds, owing to the efficacy of transferring learnt information across dataset.
+Furthermore, we can train a policy for a larger dataset and subsequently fine-tune the policy in low data resource environment(which is often the case with data on mobile devices) to produce the optimal architecture for the user tailored to it data.
+
+
+\bibsubfile
+{plainnat}
+{bibs/sub}
+
+\end{document}
