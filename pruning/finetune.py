@@ -176,7 +176,7 @@ class PrunningFineTuner_VGG16:
 	def train_epoch(self, optimizer = None, rank_filters = False):
 		for batch, label in self.train_data_loader:
 			# For CPU
-			self.train_bavi fin	tch(optimizer, batch, label, rank_filters)
+			self.train_batch(optimizer, batch, label, rank_filters)
 			# For GPU
 			# self.train_batch(optimizer, batch.cuda(), label.cuda(), rank_filters)
 
