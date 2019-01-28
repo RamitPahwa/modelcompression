@@ -37,16 +37,22 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 
 	new_weights[: filter_index, :, :, :] = old_weights[: filter_index, :, :, :]
 	new_weights[filter_index : , :, :, :] = old_weights[filter_index + 1 :, :, :, :]
-	new_conv.weight.data = torch.from_numpy(new_weights)
-	# new_conv.weight.data = torch.from_numpy(new_weights).cuda()
+	
+	if torch.cuda.is_available():
+		new_conv.weight.data = torch.from_numpy(new_weights).cuda()
+	else:
+		new_conv.weight.data = torch.from_numpy(new_weights)
 
 	bias_numpy = conv.bias.data.cpu().numpy()
 
 	bias = np.zeros(shape = (bias_numpy.shape[0] - 1), dtype = np.float32)
 	bias[:filter_index] = bias_numpy[:filter_index]
 	bias[filter_index : ] = bias_numpy[filter_index + 1 :]
-	new_conv.bias.data = torch.from_numpy(bias)
-	# new_conv.bias.data = torch.from_numpy(bias).cuda()
+	
+	if torch.cuda.is_available():
+		new_conv.bias.data = torch.from_numpy(bias).cuda()
+	else:
+		new_conv.bias.data = torch.from_numpy(bias)
 
 	if not next_conv is None:
 		next_new_conv = \
@@ -64,8 +70,11 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 
 		new_weights[:, : filter_index, :, :] = old_weights[:, : filter_index, :, :]
 		new_weights[:, filter_index : , :, :] = old_weights[:, filter_index + 1 :, :, :]
-		next_new_conv.weight.data = torch.from_numpy(new_weights)
-		# next_new_conv.weight.data = torch.from_numpy(new_weights).cuda()
+		
+		if torch.cuda.is_available():
+			next_new_conv.weight.data = torch.from_numpy(new_weights).cuda()
+		else:
+			next_new_conv.weight.data = torch.from_numpy(new_weights)
 
 		next_new_conv.bias.data = next_conv.bias.data
 
@@ -108,8 +117,11 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 
 		new_linear_layer.bias.data = old_linear_layer.bias.data
 
-		new_linear_layer.weight.data = torch.from_numpy(new_weights)
-		# new_linear_layer.weight.data = torch.from_numpy(new_weights).cuda()
+		
+		if torch.cuda.is_available():
+			new_linear_layer.weight.data = torch.from_numpy(new_weights).cuda()
+		else:
+			new_linear_layer.weight.data = torch.from_numpy(new_weights)
 
 		classifier = torch.nn.Sequential(
 			*(replace_layers(model.classifier, i, [layer_index], \
