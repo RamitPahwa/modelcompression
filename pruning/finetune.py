@@ -32,7 +32,7 @@ class ModifiedVGG16Model(torch.nn.Module):
 		    nn.Dropout(),
 		    nn.Linear(4096, 4096),
 		    nn.ReLU(inplace=True),
-		    nn.Linear(4096, 2))
+		    nn.Linear(4096, 4))
 
 	def forward(self, x):
 		x = self.features(x)
@@ -72,8 +72,8 @@ class FilterPrunner:
 		activation_index = len(self.activations) - self.grad_index - 1
 		activation = self.activations[activation_index]
 		values = \
-			torch.sum((activation * grad), dim = 0).\
-				sum(dim=2).sum(dim=3)[0, :, 0, 0].data
+			torch.sum((activation * grad), dim = 0, keepdim = True).\
+				sum(dim=2), keepdim = True.sum(dim=3, keepdim = True)[0, :, 0, 0].data
 		
 		# Normalize the rank by the filter dimensions
 		values = \
@@ -245,7 +245,7 @@ class PrunningFineTuner_VGG16:
 
 
 		print ("Finished. Going to fine tune the model a bit more")
-		self.train(optimizer, epoches = 15)
+		self.train(optimizer, epoches = 20)
 		torch.save(model.state_dict(), "model_prunned")
 
 def get_args():
