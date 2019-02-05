@@ -15,13 +15,13 @@ import data_loader
 
 # cifar-10 name-class map
 name_class={'airplane':0,'automobile':1,'bird':2,'cat':3,'deer':4,'dog':5,'frog':6,'horse':7,'ship':8,'truck':9}
-
+name = ['dog','cat','deer','horse']
 #cifar-100 name-class map TO-DO
 
 def loader(path, batch_size=32, num_workers=4, pin_memory=True):
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     return data.DataLoader(
-        data_loader.CIFARSel(root = path,names = ['dog','cat'],name_class=name_class,train=True,
+        data_loader.CIFARSel(root = path,names = name ,name_class=name_class,train=True,
                              transform = transforms.Compose([
                                  transforms.Scale(256),
                                  transforms.RandomSizedCrop(224),
@@ -37,7 +37,7 @@ def loader(path, batch_size=32, num_workers=4, pin_memory=True):
 def test_loader(path, batch_size=32, num_workers=4, pin_memory=True):
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     return data.DataLoader(
-        data_loader.CIFARSel(root = path,names = ['dog','cat'],name_class=name_class,train=False,
+        data_loader.CIFARSel(root = path,names = name, name_class=name_class,train=False,
                              transform = transforms.Compose([
                                  transforms.Scale(256),
                                  transforms.CenterCrop(224),
@@ -49,4 +49,4 @@ def test_loader(path, batch_size=32, num_workers=4, pin_memory=True):
         num_workers=num_workers,
         pin_memory=pin_memory)
 
-# print('OK')
+print('OK')
