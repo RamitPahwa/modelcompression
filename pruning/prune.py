@@ -105,8 +105,8 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 		params_per_input_channel = old_linear_layer.in_features/conv.out_channels
 		print(old_linear_layer.out_features)
 		new_linear_layer = \
-			torch.nn.Linear(old_linear_layer.in_features - params_per_input_channel, 
-				old_linear_layer.out_features)
+			torch.nn.Linear(int(old_linear_layer.in_features - params_per_input_channel), 
+				int(old_linear_layer.out_features))
 
 		old_weights = old_linear_layer.weight.data.cpu().numpy()
 		new_weights = new_linear_layer.weight.data.cpu().numpy()	 	
