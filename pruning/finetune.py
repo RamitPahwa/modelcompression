@@ -305,9 +305,11 @@ if __name__ == '__main__':
 	
 	elif args.prune:
 		if torch.cuda.is_available():
-			model = torch.load("model").cuda()
+			model_name = "model"+"_"+args.dataset+"_"+args.arch
+			model = torch.load(model_name).cuda()
 		else:
-			model = torch.load("model")
+			model_name = "model"+"_"+args.dataset+"_"+args.arch
+			model = torch.load(model_name)
 		
 	if args.arch == "VGG16":
 		fine_tuner = PrunningFineTuner_VGG16(args.train_path, args.test_path, args.arch, model)
