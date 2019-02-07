@@ -136,7 +136,8 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 	return model
 
 if __name__ == '__main__':
-	model = models.vgg16(pretrained=True)
+	# model = models.vgg16(pretrained=True)
+	model = models.vgg19(pretrained=True)
 	model.train()
 
 	t0 = time.time()

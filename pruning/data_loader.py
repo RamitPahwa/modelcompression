@@ -78,9 +78,9 @@ class CIFARSel(data.Dataset):
                 counter = counter + 1
             for i in range(len(self.train_labels_selected)):
                 self.train_labels_selected[i] = self.labels_id_dict[self.train_labels_selected[i]]          
-
-            self.train_labels_selected = self.train_labels_selected[:int(0.1*len(self.train_labels_selected))]
-            self.train_data_selected = self.train_data_selected[:int(0.1*len(self.train_data_selected))]
+                
+            self.train_labels_selected = self.train_labels_selected[:int(1.0*len(self.train_labels_selected))]
+            self.train_data_selected = self.train_data_selected[:int(1.0*len(self.train_data_selected))]
         else:
             self.test_data_selected =[]
             self.test_labels_selected =[]
@@ -148,8 +148,8 @@ class CIFARSel(data.Dataset):
         else:
             return len(self.test_data_selected)
 
-# name_class={'airplane':0,'automobile':1,'bird':2,'cat':3,'deer':4,'dog':5,'frog':6,'horse':7,'ship':8,'truck':9}
-# dataset =  CIFARSel('data/',['dog','cat','truck'],name_class=name_class)
+name_class={'airplane':0,'automobile':1,'bird':2,'cat':3,'deer':4,'dog':5,'frog':6,'horse':7,'ship':8,'truck':9}
+dataset =  CIFARSel('data/',['airplane','cat','truck','deer'],name_class=name_class)
     
 
 class CIFAR100Sel(CIFARSel):
