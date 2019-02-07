@@ -275,17 +275,17 @@ class PrunningFineTuner_VGG16:
 		torch.save(model.state_dict(), model_name)
 
 def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--train", dest="train", action="store_true")
-    parser.add_argument("--prune", dest="prune", action="store_true")
-    parser.add_argument("--train_path", type = str, default = "train")
-    parser.add_argument("--test_path", type = str, default = "test")
+	parser = argparse.ArgumentParser()
+	parser.add_argument("--train", dest="train", action="store_true")
+	parser.add_argument("--prune", dest="prune", action="store_true")
+	parser.add_argument("--train_path", type = str, default = "train")
+	parser.add_argument("--test_path", type = str, default = "test")
 	parser.add_argument("--dataset", type=str, default="CIFAR10")
 	parser.add_argument("--arch", type=str, default="VGG16")
-    parser.set_defaults(train=False)
-    parser.set_defaults(prune=False)
-    args = parser.parse_args()
-    return args
+	parser.set_defaults(train=False)
+	parser.set_defaults(prune=False)
+	args = parser.parse_args()
+	return args
 
 if __name__ == '__main__':
 	args = get_args()
