@@ -148,8 +148,8 @@ class CIFARSel(data.Dataset):
         else:
             return len(self.test_data_selected)
 
-name_class={'airplane':0,'automobile':1,'bird':2,'cat':3,'deer':4,'dog':5,'frog':6,'horse':7,'ship':8,'truck':9}
-dataset =  CIFARSel('data/',['airplane','cat','truck','deer'],name_class=name_class)
+#name_class={'airplane':0,'automobile':1,'bird':2,'cat':3,'deer':4,'dog':5,'frog':6,'horse':7,'ship':8,'truck':9}
+#dataset =  CIFARSel('data/',['airplane','cat','truck','deer'],name_class=name_class)
     
 
 class CIFAR100Sel(CIFARSel):
