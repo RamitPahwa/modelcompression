@@ -12,6 +12,13 @@ from PIL import Image
 import glob
 import os
 import data_loader
+
+def unpickle(file):
+    import pickle
+    with open(file, 'rb') as fo:
+        dict = pickle.load(fo, encoding='latin1')
+    return dict
+    
 '''
 # cifar-10 name-class map
 name_class={'airplane':0,'automobile':1,'bird':2,'cat':3,'deer':4,'dog':5,'frog':6,'horse':7,'ship':8,'truck':9}
@@ -20,11 +27,7 @@ name_cifar10_vehicles = ['airplane','automobile','truck']
 name_exp1 = ['dog','cat']
 # TO-DO Random experiment
 
-def unpickle(file):
-    import pickle
-    with open(file, 'rb') as fo:
-        dict = pickle.load(fo, encoding='latin1')
-    return dict
+
 
 def loader(path, batch_size=32, num_workers=4, pin_memory=True):
     normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
