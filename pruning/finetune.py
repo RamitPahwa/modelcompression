@@ -177,7 +177,8 @@ class FilterPrunner:
 		return filters_to_prune				
 
 class PrunningFineTuner_VGG16:
-	def __init__(self, train_path, test_path, arch, dataset, subset, model):
+	def __init__(self, train_path, test_path, arch, datasetname , subset, model):
+		print(train_path)
 		self.train_data_loader = dataset.loader(train_path)
 		self.test_data_loader = dataset.test_loader(test_path)
 
@@ -296,7 +297,7 @@ class PrunningFineTuner_VGG16:
 
 		print ("Finished. Going to fine tune the model a bit more")
 		self.train(optimizer, epoches = 1)
-		model_name = "prunned_model"+"_"+ arch + "_" + dataset+"_"+ subset
+		model_name = "prunned_model"+"_"+ arch + "_" + datasetname+"_"+ subset
 		torch.save(model.state_dict(), model_name)
 
 def get_args():
@@ -305,7 +306,7 @@ def get_args():
 	parser.add_argument("--prune", dest="prune", action="store_true")
 	parser.add_argument("--train_path", type = str, default = "train")
 	parser.add_argument("--test_path", type = str, default = "test")
-	parser.add_argument("--dataset", type=str, default="CIFAR10")
+	parser.add_argument("--datasetname", type=str, default="CIFAR10")
 	parser.add_argument("--subset", type=str, default="vehicles")
 	parser.add_argument("--arch", type=str, default="VGG16")
 	parser.set_defaults(train=False)
@@ -336,22 +337,22 @@ if __name__ == '__main__':
 	
 	elif args.prune:
 		if torch.cuda.is_available():
-			model_name = "model"+"_" +args.arch + "_" +args.dataset+"_"+args.subset
+			model_name = "model"+"_" +args.arch + "_" +args.datasetname+"_"+args.subset
 			model = torch.load(model_name).cuda()
 		else:
-			model_name = "model"+"_" +args.arch + "_" +args.dataset+"_"+args.subset
+			model_name = "model"+"_" +args.arch + "_" +args.datasetname+"_"+args.subset
 			model = torch.load(model_name)
 		
 	if args.arch == "VGG16":
-		fine_tuner = PrunningFineTuner_VGG16(args.train_path, args.test_path, args.arch, args.dataset, args.subset, model)
+		fine_tuner = PrunningFineTuner_VGG16(args.train_path, args.test_path, args.arch, args.datasetname, args.subset, model)
 	elif args.arch == "VGG19":
-		fine_tuner = PrunningFineTuner_VGG16(args.train_path, args.test_path, args.arch, args.dataset, args.subbset, model)
+		fine_tuner = PrunningFineTuner_VGG16(args.train_path, args.test_path, args.arch, args.datasetname, args.subset, model)
 	elif args.arch == "VGG11":
-		fine_tuner = PrunningFineTuner_VGG16(args.train_path, args.test_path, args.arch, args.dataset, args.subbset, model)
+		fine_tuner = PrunningFineTuner_VGG16(args.train_path, args.test_path, args.arch, args.datasetname, args.subset, model)
 
 	if args.train:
 		fine_tuner.train(epoches = 1)
-		model_name = "model"+"_" +args.arch + "_" +args.dataset+"_"+args.subset
+		model_name = "model"+"_" +args.arch + "_" +args.datasetname+"_"+args.subset
 		torch.save(model, model_name)
 
 	elif args.prune:
