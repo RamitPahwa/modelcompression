@@ -27,13 +27,13 @@ class ModifiedResNet18Model(torch.nn.Module):
 		print("start pruning:")
 		for param in self.features.parameters():
 			param.requires_grad = False
-
+		#TO-DO CHANGE final output classes
 		self.fc = nn.Sequential(
 			#nn.Linear(512, 100)
 			nn.Dropout(),
 			nn.Linear(512,400),
 			nn.ReLU(inplace=True),
-                        nn.Dropout(),
+			nn.Dropout(),
 			nn.Linear(400,256),
 			nn.ReLU(inplace=True),
 			nn.Linear(256, 100))
@@ -108,8 +108,8 @@ class FilterPrunner:
 		activation_index = len(self.activations) - self.grad_index - 1
 		activation = self.activations[activation_index]
 		values = \
-			torch.sum((activation * grad), dim = 0).\
-				sum(dim=2).sum(dim=3)[0, :, 0, 0].data
+			torch.sum((activation * grad), dim = 0, keepdim=True).\
+				sum(dim=2, keepdim=True).sum(dim=3, keepdim=True)[0, :, 0, 0].data
 		
 		# Normalize the rank by the filter dimensions
 		values = \
@@ -132,8 +132,8 @@ class FilterPrunner:
 
 	def normalize_ranks_per_layer(self):
 		for i in self.filter_ranks:
-			v = torch.abs(self.filter_ranks[i])
-			v = v / np.sqrt(torch.sum(v * v))
+			v = torch.abs(self.filter_ranks[i]).cpu()
+			v = v / np.sqrt(torch.sum(v.cpu() * v.cpu()))
 			self.filter_ranks[i] = v.cpu()
 
 	def model_forward(self, x):
@@ -322,11 +322,11 @@ class PrunningFineTuner_ResNet18:
 			self.test()
 			print "Fine tuning to recover from prunning iteration."
 			optimizer = optim.SGD(self.model.parameters(), lr=0.001, momentum=0.9)
-			self.train(optimizer, epoches = 10)
+			self.train(optimizer, epoches = 1)
 
 
 		print "Finished. Going to fine tune the model a bit more"
-		self.train(optimizer, epoches = 4)
+		self.train(optimizer, epoches = 1)
 		torch.save(model, "prunned_18")
 		print("All Pruning End !")
 
@@ -336,6 +336,8 @@ def get_args():
     parser.add_argument("--prune", dest="prune", action="store_true")
     parser.add_argument("--train_path", type = str, default = "train")
     parser.add_argument("--test_path", type = str, default = "test")
+	parser.add_argument("--dataset", type=str, default="CIFAR10")
+	parser.add_argument("--arch", type=str, default="Res18")
     parser.set_defaults(train=False)
     parser.set_defaults(prune=False)
     args = parser.parse_args()
@@ -353,7 +355,7 @@ if __name__ == '__main__':
 	fine_tuner = PrunningFineTuner_ResNet18(args.train_path, args.test_path, model)
 
 	if args.train:
-		fine_tuner.train(epoches = 10)
+		fine_tuner.train(epoches = 1)
 		torch.save(model, "model_18")
 
 	elif args.prune:
