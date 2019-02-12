@@ -32,7 +32,7 @@ class ModifiedVGG16Model(torch.nn.Module):
 		    nn.Dropout(),
 		    nn.Linear(4096, 4096),
 		    nn.ReLU(inplace=True),
-		    nn.Linear(4096, 4))
+		    nn.Linear(4096, 5))
 
 	def forward(self, x):
 		x = self.features(x)
