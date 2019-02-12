@@ -14,10 +14,11 @@ import os
 import data_loader
 
 def unpickle(file):
-    import pickle
+    import cPickle
     with open(file, 'rb') as fo:
-        dict = pickle.load(fo, encoding='bytes')
-    return dict   
+        dict = cPickle.load(fo)
+    return dict
+  
 '''
 # cifar-10 name-class map
 name_class={'airplane':0,'automobile':1,'bird':2,'cat':3,'deer':4,'dog':5,'frog':6,'horse':7,'ship':8,'truck':9}
