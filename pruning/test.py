@@ -43,10 +43,12 @@ def get_args():
 
 if __name__ == '__main__':
     args = get_args()
-    
-    model = torch.load(args.model)
+
+    print(torch.cuda.is_available())
     if torch.cuda.is_available():
-        model = model.cuda()
+        model = torch.load(args.model).cuda()
+    else :
+        model = torch.load(args.model)
     test_path = args.testpath 
     test_loader = dataset.test_loader(test_path)
     start_time = time.time()
