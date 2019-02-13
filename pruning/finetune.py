@@ -199,7 +199,7 @@ class PrunningFineTuner_VGG16:
 			pred = output.data.max(1)[1]
 			correct += pred.cpu().eq(label).sum()
 			total += label.size(0)
-			print ("Accuracy :",float(correct) / total)
+		print ("Accuracy :",float(correct) / total)
 
 		self.model.train()
 
