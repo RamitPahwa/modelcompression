@@ -108,7 +108,7 @@ def test(model, test_loader):
     val_accuracy = float(correct) / total
     num_params = numParams(model)
     # now save the model if it has better accuracy than the best model seen so forward
-    return val_accuracy, numParams
+    return val_accuracy, num_params
 
 def get_args():
     parser = argparse.ArgumentParser()
