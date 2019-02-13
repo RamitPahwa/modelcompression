@@ -6,7 +6,7 @@ import numpy as np
 import data_loader
 import dataset
 import time 
-
+from torchvision import models
 
 warnings.filterwarnings('ignore')
 with warnings.catch_warnings():
@@ -131,7 +131,7 @@ if __name__ == '__main__':
     #     else:
     #         model = ModifiedVGG11Model()
 
-    model = torch.load(args.model))
+    model = torch.load(args.model)
     
     print(torch.cuda.is_available())
     
