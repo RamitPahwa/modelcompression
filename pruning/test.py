@@ -6,7 +6,11 @@ import numpy as np
 import data_loader
 import dataset
 import time 
+import torch.nn as nn
 from torchvision import models
+import torch.nn.functional as F
+import torch.optim as optim
+from torch.autograd import Variable
 
 warnings.filterwarnings('ignore')
 with warnings.catch_warnings():
@@ -15,7 +19,7 @@ class ModifiedVGG16Model(torch.nn.Module):
 	def __init__(self):
 		super(ModifiedVGG16Model, self).__init__()
 
-		model = models.vgg16(pretrained=True)
+		model = models.vgg16(pretrained=False)
 		self.features = model.features
 
 		for param in self.features.parameters():
@@ -40,7 +44,7 @@ class ModifiedVGG19Model(torch.nn.Module):
 	def __init__(self):
 		super(ModifiedVGG19Model, self).__init__()
 
-		model = models.vgg19(pretrained=True)
+		model = models.vgg19(pretrained=False)
 		self.features = model.features
 
 		for param in self.features.parameters():
@@ -65,7 +69,7 @@ class ModifiedVGG11Model(torch.nn.Module):
 	def __init__(self):
 		super(ModifiedVGG11Model, self).__init__()
 
-		model = models.vgg11(pretrained=True)
+		model = models.vgg11(pretrained=False)
 		self.features = model.features
 
 		for param in self.features.parameters():
@@ -93,7 +97,7 @@ def test(model, test_loader):
     model.eval()
     correct = 0
     total = 0
-    for i, (batch, label) in enumerate(self.test_data_loader):
+    for i, (batch, label) in enumerate(test_loader):
         if torch.cuda.is_available():
             batch = batch.cuda()
         output = model(Variable(batch))
@@ -101,9 +105,10 @@ def test(model, test_loader):
         correct = correct + pred.cpu().eq(label).sum()
         total = total + label.size(0)
     print ("Accuracy :",float(correct) / total)
+    val_accuracy = float(correct) / total
     num_params = numParams(model)
     # now save the model if it has better accuracy than the best model seen so forward
-    return val_accuracy/100.0, numParams
+    return val_accuracy, numParams
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -115,21 +120,21 @@ def get_args():
 
 if __name__ == '__main__':
     args = get_args()
-    # if args.arch == "VGG16": 
-    #     if torch.cuda.is_available():
-    #         model = ModifiedVGG16Model().cuda()
-    #     else:
-    #         model = ModifiedVGG16Model()
-    # elif args.arch == "VGG19":
-    #     if torch.cuda.is_available():
-    #         model = ModifiedVGG19Model().cuda()
-    #     else:
-    #         model = ModifiedVGG19Model()
-    # elif args.arch == "VGG11":
-    #     if torch.cuda.is_available():
-    #         model = ModifiedVGG11Model().cuda()
-    #     else:
-    #         model = ModifiedVGG11Model()
+    if args.arch == "VGG16": 
+        if torch.cuda.is_available():
+            model = ModifiedVGG16Model().cuda()
+        else:
+            model = ModifiedVGG16Model()
+    elif args.arch == "VGG19":
+        if torch.cuda.is_available():
+            model = ModifiedVGG19Model().cuda()
+        else:
+            model = ModifiedVGG19Model()
+    elif args.arch == "VGG11":
+        if torch.cuda.is_available():
+            model = ModifiedVGG11Model().cuda()
+        else:
+            model = ModifiedVGG11Model()
 
     model.load_state_dict(torch.load(args.model))
     
