@@ -120,21 +120,21 @@ def get_args():
 
 if __name__ == '__main__':
     args = get_args()
-    if args.arch == "VGG16": 
-        if torch.cuda.is_available():
-            model = ModifiedVGG16Model().cuda()
-        else:
-            model = ModifiedVGG16Model()
-    elif args.arch == "VGG19":
-        if torch.cuda.is_available():
-            model = ModifiedVGG19Model().cuda()
-        else:
-            model = ModifiedVGG19Model()
-    elif args.arch == "VGG11":
-        if torch.cuda.is_available():
-            model = ModifiedVGG11Model().cuda()
-        else:
-            model = ModifiedVGG11Model()
+    # if args.arch == "VGG16": 
+    #     if torch.cuda.is_available():
+    #         model = ModifiedVGG16Model().cuda()
+    #     else:
+    #         model = ModifiedVGG16Model()
+    # elif args.arch == "VGG19":
+    #     if torch.cuda.is_available():
+    #         model = ModifiedVGG19Model().cuda()
+    #     else:
+    #         model = ModifiedVGG19Model()
+    # elif args.arch == "VGG11":
+    #     if torch.cuda.is_available():
+    #         model = ModifiedVGG11Model().cuda()
+    #     else:
+    #         model = ModifiedVGG11Model()
 
     model = torch.load(args.model).cuda()
     

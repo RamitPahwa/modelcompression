@@ -298,7 +298,7 @@ class PrunningFineTuner_VGG16:
 		print ("Finished. Going to fine tune the model a bit more")
 		self.train(optimizer, epoches = 1)
 		model_name = "prunned_model"+"_"+ arch + "_" + datasetname+"_"+ subset
-		torch.save(model.state_dict(), model_name)
+		torch.save(model, model_name)
 
 def get_args():
 	parser = argparse.ArgumentParser()
