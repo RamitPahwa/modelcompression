@@ -91,22 +91,17 @@ def numParams(model):
 
 def test(model, test_loader):
     model.eval()
-    global best_accuracy
     correct = 0
-    for idx, (data, target) in enumerate(test_loader):
-        if cuda:
-            data, target = data.cuda(), target.cuda()
-        data, target = Variable(data, volatile=True), Variable(target)
-
-        # do the forward pass
-        score = model.forward(data)
-        pred = score.data.max(1)[1] # got the indices of the maximum, match them
-        correct += pred.eq(target.data).cpu().sum()
+    total = 0
+    for i, (batch, label) in enumerate(self.test_data_loader):
+        if torch.cuda.is_available():
+            batch = batch.cuda()
+        output = model(Variable(batch))
+        pred = output.data.max(1)[1]
+        correct = correct + pred.cpu().eq(label).sum()
+        total = total + label.size(0)
+    print ("Accuracy :",float(correct) / total)
     num_params = numParams(model)
-    print("predicted {} out of {}".format(correct, len(test_loader.dataset)))
-    val_accuracy = correct / float(len(test_loader.dataset)) * 100.0
-    print("accuracy = {:.2f}".format(val_accuracy))
-
     # now save the model if it has better accuracy than the best model seen so forward
     return val_accuracy/100.0, numParams
 
@@ -120,23 +115,23 @@ def get_args():
 
 if __name__ == '__main__':
     args = get_args()
-    if args.arch == "VGG16": 
-        if torch.cuda.is_available():
-            model = ModifiedVGG16Model().cuda()
-        else:
-            model = ModifiedVGG16Model()
-    elif args.arch == "VGG19":
-        if torch.cuda.is_available():
-            model = ModifiedVGG19Model().cuda()
-        else:
-            model = ModifiedVGG19Model()
-    elif args.arch == "VGG11":
-        if torch.cuda.is_available():
-            model = ModifiedVGG11Model().cuda()
-        else:
-            model = ModifiedVGG11Model()
+    # if args.arch == "VGG16": 
+    #     if torch.cuda.is_available():
+    #         model = ModifiedVGG16Model().cuda()
+    #     else:
+    #         model = ModifiedVGG16Model()
+    # elif args.arch == "VGG19":
+    #     if torch.cuda.is_available():
+    #         model = ModifiedVGG19Model().cuda()
+    #     else:
+    #         model = ModifiedVGG19Model()
+    # elif args.arch == "VGG11":
+    #     if torch.cuda.is_available():
+    #         model = ModifiedVGG11Model().cuda()
+    #     else:
+    #         model = ModifiedVGG11Model()
 
-    model.load_state_dict(torch.load(args.model))
+    model = torch.load(args.model))
     
     print(torch.cuda.is_available())
     
