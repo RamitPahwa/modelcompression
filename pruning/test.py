@@ -131,7 +131,7 @@ if __name__ == '__main__':
     #     else:
     #         model = ModifiedVGG11Model()
 
-    model = torch.load(args.model)
+    model.load_state_dict(torch.load(args.model)
     
     print(torch.cuda.is_available())
     
