@@ -18,8 +18,8 @@ def test(model, test_loader):
     global best_accuracy
     correct = 0
     for idx, (data, target) in enumerate(test_loader):
-        if cuda:
-            data, target = data.cuda(), target.cuda()
+        # if cuda:
+        #     data, target = data.cuda(), target.cuda()
         data, target = Variable(data, volatile=True), Variable(target)
 
         # do the forward pass
@@ -44,11 +44,11 @@ def get_args():
 if __name__ == '__main__':
     args = get_args()
 
-    print(torch.cuda.is_available())
-    if torch.cuda.is_available():
-        model = torch.load(args.model).cuda()
-    else :
-        model = torch.load(args.model)
+    # print(torch.cuda.is_available())
+    # if torch.cuda.is_available():
+    #     model = torch.load(args.model).cuda()
+    # else :
+    model = torch.load(args.model)
     test_path = args.testpath 
     test_loader = dataset.test_loader(test_path)
     start_time = time.time()
