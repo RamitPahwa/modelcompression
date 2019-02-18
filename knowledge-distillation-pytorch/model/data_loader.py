@@ -10,7 +10,15 @@ from PIL import Image
 import torch
 import torchvision
 import torchvision.transforms as transforms
+from model import cifarsel_dataloader
 from torch.utils.data.sampler import SubsetRandomSampler
+
+
+def unpickle(file):
+    import pickle
+    with open(file, 'rb') as fo:
+        dict = pickle.load(fo, encoding='bytes')
+    return dict
 
 def fetch_dataloader(types, params):
     """
@@ -35,16 +43,59 @@ def fetch_dataloader(types, params):
     dev_transformer = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261))])
+    # For CIFAR-10
+    # cifar-10 name-class map
+    name_class={'airplane':0,'automobile':1,'bird':2,'cat':3,'deer':4,'dog':5,'frog':6,'horse':7,'ship':8,'truck':9}
+    name = ['dog','cat','deer','horse']
+    name_cifar10_vehicles = ['airplane','automobile','truck']
+    name_exp1 = ['dog','cat']
+    # for CIFAR100
+    insect_name = ['bee', 'beetle', 'butterfly', 'caterpillar', 'cockroach'] 
+    fruit_name = ['apple', 'mushroom', 'orange', 'pear', 'sweet_pepper']
+    #cifar-100 name-class map 
+    meta = unpickle('../data/cifar-100-python/meta')
+    name_class_cifar100 = {}
+    for i,name in enumerate(meta['fine_label_names']):
+        name_class_cifar100[name]=i
+        
+# change the names in the CIFARSel functional call
+    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    '''
+    trainset = cifarsel_dataloader.CIFARSel(root = '../../data',names = name_cifar10_vehicles ,name_class=name_class,train=True,
+                             transform = transforms.Compose([
+                                 transforms.Scale(256),
+                                 transforms.RandomSizedCrop(224),
+                                 transforms.RandomHorizontalFlip(),
+                                 transforms.ToTensor(),
+                                 normalize,
+                             ]))
+    devset = cifarsel_dataloader.CIFARSel(root = '../../data',names = name_cifar10_vehicles, name_class=name_class,train=False,
+                             transform = transforms.Compose([
+                                 transforms.Scale(256),
+                                 transforms.CenterCrop(224),
+                                 transforms.ToTensor(),
+                                 normalize,
+                             ]))
+    '''
+    
+    trainset = cifarsel_dataloader.CIFAR100Sel(root = '../../data', names = insect_name ,name_class=name_class_cifar100,train=True,
+                    transform = transforms.Compose([
+                                 transforms.Scale(256),
+                                 transforms.RandomSizedCrop(224),
+                                 transforms.RandomHorizontalFlip(),
+                                 transforms.ToTensor(),
+                                 normalize,
+                             ]))
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=params.batch_size, shuffle=True, num_workers=params.num_workers, pin_memory=params.cuda)
 
-    trainset = torchvision.datasets.CIFAR10(root='./data-cifar10', train=True,
-        download=True, transform=train_transformer)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=params.batch_size,
-        shuffle=True, num_workers=params.num_workers, pin_memory=params.cuda)
-
-    devset = torchvision.datasets.CIFAR10(root='./data-cifar10', train=False,
-        download=True, transform=dev_transformer)
-    devloader = torch.utils.data.DataLoader(devset, batch_size=params.batch_size,
-        shuffle=False, num_workers=params.num_workers, pin_memory=params.cuda)
+    devset = cifarsel_dataloader.CIFAR100Sel(root = '../../data',names = insect_name, name_class=name_class_cifar100,train=False,
+                             transform = transforms.Compose([
+                                 transforms.Scale(256),
+                                 transforms.CenterCrop(224),
+                                 transforms.ToTensor(),
+                                 normalize,
+                             ])),
+    devloader = torch.utils.data.DataLoader(devset, batch_size=params.batch_size,shuffle=False, num_workers=params.num_workers, pin_memory=params.cuda)
 
     if types == 'train':
         dl = trainloader
@@ -78,11 +129,60 @@ def fetch_subset_dataloader(types, params):
         transforms.ToTensor(),
         transforms.Normalize((0.4914, 0.4822, 0.4465), (0.247, 0.243, 0.261))])
 
-    trainset = torchvision.datasets.CIFAR10(root='./data-cifar10', train=True,
-        download=True, transform=train_transformer)
+    # For CIFAR-10
+    # cifar-10 name-class map
+    name_class={'airplane':0,'automobile':1,'bird':2,'cat':3,'deer':4,'dog':5,'frog':6,'horse':7,'ship':8,'truck':9}
+    name = ['dog','cat','deer','horse']
+    name_cifar10_vehicles = ['airplane','automobile','truck']
+    name_exp1 = ['dog','cat']
+    # for CIFAR100
+    insect_name = ['bee', 'beetle', 'butterfly', 'caterpillar', 'cockroach'] 
+    fruit_name = ['apple', 'mushroom', 'orange', 'pear', 'sweet_pepper']
+    #cifar-100 name-class map 
+    meta = unpickle('../data/cifar-100-python/meta')
+    name_class_cifar100 = {}
+    for i,name in enumerate(meta['fine_label_names']):
+        name_class_cifar100[name]=i
+        
+# change the names in the CIFARSel functional call
+    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    '''
+    trainset = cifarsel_dataloader.CIFARSel(root = '../../data',names = name_cifar10_vehicles ,name_class=name_class,train=True,
+                             transform = transforms.Compose([
+                                 transforms.Scale(256),
+                                 transforms.RandomSizedCrop(224),
+                                 transforms.RandomHorizontalFlip(),
+                                 transforms.ToTensor(),
+                                 normalize,
+                             ]))
+    devset = cifarsel_dataloader.CIFARSel(root = '../../data',names = name_cifar10_vehicles, name_class=name_class,train=False,
+                             transform = transforms.Compose([
+                                 transforms.Scale(256),
+                                 transforms.CenterCrop(224),
+                                 transforms.ToTensor(),
+                                 normalize,
+                             ]))
+    '''
+    
+    trainset = cifarsel_dataloader.CIFAR100Sel(root = '../../data', names = insect_name ,name_class=name_class_cifar100,train=True,
+                    transform = transforms.Compose([
+                                 transforms.Scale(256),
+                                 transforms.RandomSizedCrop(224),
+                                 transforms.RandomHorizontalFlip(),
+                                 transforms.ToTensor(),
+                                 normalize,
+                             ]))
+    # trainloader = torch.utils.data.DataLoader(trainset, batch_size=params.batch_size, shuffle=True, num_workers=params.num_workers, pin_memory=params.cuda)
 
-    devset = torchvision.datasets.CIFAR10(root='./data-cifar10', train=False,
-        download=True, transform=dev_transformer)
+    devset = cifarsel_dataloader.CIFAR100Sel(root = '../../data',names = insect_name, name_class=name_class_cifar100,train=False,
+                             transform = transforms.Compose([
+                                 transforms.Scale(256),
+                                 transforms.CenterCrop(224),
+                                 transforms.ToTensor(),
+                                 normalize,
+                             ])),
+    # devloader = torch.utils.data.DataLoader(devset, batch_size=params.batch_size,shuffle=False, num_workers=params.num_workers, pin_memory=params.cuda)
+
 
     trainset_size = len(trainset)
     indices = list(range(trainset_size))
