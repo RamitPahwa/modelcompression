@@ -8,6 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import dataset
+from model import *
 from prune import *
 import argparse
 from operator import itemgetter
@@ -76,31 +77,32 @@ class FilterPrunner:
 		activation_index = 0
 		kk = 0
 		for layer, (name, module) in enumerate(self.model.features._modules.items()):
-		    if layer < 4 or layer > 7 :		    
-			x = module(x)
-		    if isinstance(module, torch.nn.modules.conv.Conv2d): #or isinstance(module, torch.nn.BatchNorm2d):
-		    	x.register_hook(self.compute_rank)
-		        self.activations.append(x)
-		        self.activation_to_layer[activation_index] = kk
-		    	activation_index += 1
-			kk += 1
-		    if layer==4 or layer==5 or layer==6 or layer==7:
-			for kt in range(2):
-				x = self.model.features._modules.items()[layer][1][kt].conv1(x)
+			if layer < 4 or layer > 7 :
+				x = module(x)
+			if isinstance(module, torch.nn.modules.conv.Conv2d): 
 				x.register_hook(self.compute_rank)
-                        	self.activations.append(x)
-                        	self.activation_to_layer[activation_index] = kk
-                        	activation_index += 1
+				self.activations.append(x)
+				self.activation_to_layer[activation_index] = kk
+				activation_index += 1
 				kk += 1
-				x = self.model.features._modules.items()[layer][1][kt].bn1(x)
-				x = self.model.features._modules.items()[layer][1][kt].relu(x)
-				x = self.model.features._modules.items()[layer][1][kt].conv2(x)
-                                x.register_hook(self.compute_rank)
-                                self.activations.append(x)
-                                self.activation_to_layer[activation_index] = kk
-                                activation_index += 1
-				kk += 1
-				x = self.model.features._modules.items()[layer][1][kt].bn2(x)
+		    
+			if layer==4 or layer==5 or layer==6 or layer==7:
+				for kt in range(2):
+					x = self.model.features._modules.items()[layer][1][kt].conv1(x)
+					x.register_hook(self.compute_rank)
+					self.activations.append(x)
+					self.activation_to_layer[activation_index] = kk
+					activation_index += 1
+					kk += 1
+					x = self.model.features._modules.items()[layer][1][kt].bn1(x)
+					x = self.model.features._modules.items()[layer][1][kt].relu(x)
+					x = self.model.features._modules.items()[layer][1][kt].conv2(x)
+					x.register_hook(self.compute_rank)
+					self.activations.append(x)
+					self.activation_to_layer[activation_index] = kk
+					activation_index += 1
+					kk += 1
+					x = self.model.features._modules.items()[layer][1][kt].bn2(x)
 
 		return self.model.fc(x.view(x.size(0), -1))
 
@@ -137,18 +139,17 @@ class FilterPrunner:
 			self.filter_ranks[i] = v.cpu()
 
 	def model_forward(self, x):
-                for layer, (name, module) in enumerate(self.model.features._modules.items()):
-                    if layer < 4 or layer > 7 :
-                        x = module(x)
-                    else:
-                        for kt in range(2):
-                                x = self.model.features._modules.items()[layer][1][kt].conv1(x)
-                                x = self.model.features._modules.items()[layer][1][kt].bn1(x)
-                                x = self.model.features._modules.items()[layer][1][kt].relu(x)
-                                x = self.model.features._modules.items()[layer][1][kt].conv2(x)
-                                x = self.model.features._modules.items()[layer][1][kt].bn2(x)
-
-                return self.model.fc(x.view(x.size(0), -1))
+		for layer, (name, module) in enumerate(self.model.features._modules.items()):
+					if layer < 4 or layer > 7:
+						x = module(x)
+					else:
+						for kt in range(2):
+							x = self.model.features._modules.items()[layer][1][kt].conv1(x)
+							x = self.model.features._modules.items()[layer][1][kt].bn1(x)
+							x = self.model.features._modules.items()[layer][1][kt].relu(x)
+							x = self.model.features._modules.items()[layer][1][kt].conv2(x)
+							x = self.model.features._modules.items()[layer][1][kt].bn2(x)
+		return self.model.fc(x.view(x.size(0), -1))
 
 	def get_prunning_plan(self, num_filters_to_prune):
 		filters_to_prune = self.lowest_ranking_filters(num_filters_to_prune)
@@ -174,7 +175,7 @@ class FilterPrunner:
 		return filters_to_prune				
 
 class PrunningFineTuner_ResNet18:
-	def __init__(self, train_path, test_path, model):
+	def __init__(self, train_path, test_path, arch, datasetname , subset, model):
 		self.train_data_loader = dataset.loader(train_path)
 		self.test_data_loader = dataset.test_loader(test_path)
 
@@ -195,24 +196,19 @@ class PrunningFineTuner_ResNet18:
 			output = self.prunner.model_forward(indata)
 			#output = model(Variable(batch))
 			pred = output.data.max(1)[1]
-	 		correct += pred.cpu().eq(label).sum()
-	 		total += label.size(0)
-	 	
-	 	print "Accuracy :", str(100*float(correct) / total) + "%"
-	 	
-	 	self.model.train()
-
+			correct += pred.cpu().eq(label).sum()
+			total += label.size(0)
+		print ("Accuracy :", str(100*float(correct) / total) + "%")
+		self.model.train()
+	
 	def train(self, optimizer = None, epoches = 10):
 		if optimizer is None:
-			optimizer = \
-				optim.SGD(model.fc.parameters(), 
-					lr=0.0001, momentum=0.9)
-
+			optimizer = optim.SGD(model.fc.parameters(),lr=0.0001, momentum=0.9)
 		for i in range(epoches):
-			print "Epoch: ", i
+			print ("Epoch: ", i)
 			self.train_epoch(optimizer)
 			self.test()
-		print "Finished fine tuning."
+		print ("Finished fine tuning.")
 		
 
 	def train_batch(self, optimizer, batch, label, rank_filters):
@@ -258,9 +254,7 @@ class PrunningFineTuner_ResNet18:
 			if layer < 4 or layer > 7 :
 				if isinstance(module, torch.nn.modules.conv.Conv2d):
 					conv = torch.nn.BatchNorm2d(num_features=module.out_channels, eps=1e-05, momentum=0.1, affine=True)
-					model.features = torch.nn.Sequential(
-						*(replace_layers(model.features, i, [layer+1], \
-							[conv]) for i, _ in enumerate(model.features)))
+					model.features = torch.nn.Sequential(*(replace_layers(model.features, i, [layer+1],[conv]) for i, _ in enumerate(model.features)))
 			else:
 				for kt in range(2):
 					conv1 = torch.nn.BatchNorm2d(model.features._modules.items()[layer][1][kt].conv1.out_channels, eps=1e-05, momentum=0.1, affine=True)
@@ -278,7 +272,6 @@ class PrunningFineTuner_ResNet18:
 	def prune(self):
 		#Get the accuracy before prunning
 		self.test()
-
 		self.model.train()
 
 		#Make sure all the layers are trainable
@@ -292,10 +285,10 @@ class PrunningFineTuner_ResNet18:
 
 		iterations = int(iterations * 2.0 / 3)
 		#print(iterations)
-		print "Number of prunning iterations to reduce 67% filters", iterations
+		print ("Number of prunning iterations to reduce 67% filters", iterations)
 
 		for _ in range(iterations):
-			print "Ranking filters: ", _, "times .."
+			print ("Ranking filters: ", _, "times ..")
 			prune_targets = self.get_candidates_to_prune(num_filters_to_prune_per_iteration)
 			layers_prunned = {}
 			for layer_index, filter_index in prune_targets:
@@ -303,8 +296,8 @@ class PrunningFineTuner_ResNet18:
 					layers_prunned[layer_index] = 0
 				layers_prunned[layer_index] = layers_prunned[layer_index] + 1 
 			#print "All channels pruned distribution", prune_targets
-			print "Layers that will be prunned", layers_prunned
-			print "Prunning filters.. "
+			print ("Layers that will be prunned", layers_prunned)
+			print ("Prunning filters.. ")
 			model = self.model.cpu()
 			for layer_index, filter_index in prune_targets:
 				#if layer_index ==14:
@@ -312,68 +305,72 @@ class PrunningFineTuner_ResNet18:
 				model = prune_resnet18_conv_layer(model, layer_index, filter_index)
 			model = self.batchnorm_modify()
 			self.model = model.cuda()
-			print "Plan to prune...", model
+			print ("Plan to prune...", model)
 
-			message = str(100*float(self.total_num_filters()) / number_of_filters) + "%"
-			print "Filters prunned", str(message)
+			message = str(100*float(self.total_num_filters()) / number_of_filters) 
+			print ("Filters prunned %", str(message))
 			#for batch, label in self.train_data_loader:
 				#input = Variable(batch.cuda())
 				#output = self.prunner.forward(input)
 			self.test()
-			print "Fine tuning to recover from prunning iteration."
+			print ("Fine tuning to recover from prunning iteration.")
 			optimizer = optim.SGD(self.model.parameters(), lr=0.001, momentum=0.9)
 			self.train(optimizer, epoches = 1)
 
-
-		print "Finished. Going to fine tune the model a bit more"
+		print ("Finished. Going to fine tune the model a bit more")
 		self.train(optimizer, epoches = 1)
-		torch.save(model, "prunned_18")
+		model_name = "prunned_model"+"_"+ arch + "_" + datasetname+"_"+ subset
+		torch.save(model, model_name)
 		print("All Pruning End !")
+		
+		
+		
 
 def get_args():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--train", dest="train", action="store_true")
-    parser.add_argument("--prune", dest="prune", action="store_true")
-    parser.add_argument("--train_path", type = str, default = "train")
-    parser.add_argument("--test_path", type = str, default = "test")
-	parser.add_argument("--dataset", type=str, default="CIFAR10")
+	parser = argparse.ArgumentParser()
+	parser.add_argument("--train", dest="train", action="store_true")
+	parser.add_argument("--prune", dest="prune", action="store_true")
+	parser.add_argument("--train_path", type = str, default = "train")
+	parser.add_argument("--test_path", type = str, default = "test")
+	parser.add_argument("--datasetname", type=str, default="CIFAR10")
 	parser.add_argument("--subset", type=str, default="vehicles")
 	parser.add_argument("--arch", type=str, default="Res18")
-    parser.set_defaults(train=False)
-    parser.set_defaults(prune=False)
-    args = parser.parse_args()
-    return args
+	parser.set_defaults(train=False)
+	parser.set_defaults(prune=False)
+	args = parser.parse_args()
+	return args
 
 if __name__ == '__main__':
 	args = get_args()
 	if args.train:
-		if args.arch == "VGG16": 
+		if args.arch == "Res18": 
 			if torch.cuda.is_available():
-				model = ModifiedVGG16Model().cuda()
+				model = ModifiedResNet18Model().cuda()
 			else:
-				model = ModifiedVGG16Model()
-		elif args.arch == "VGG19":
+				model = ModifiedResNet18Model()
+		elif args.arch == "Res34":
 			if torch.cuda.is_available():
-				model = ModifiedVGG19Model().cuda()
+				model = ModifiedResNet34Model().cuda()
 			else:
-				model = ModifiedVGG19Model()
-		elif args.arch == "VGG11":
-			if torch.cuda.is_available():
-				model = ModifiedVGG11Model().cuda()
-			else:
-				model = ModifiedVGG11Model()
-	
-	if args.train:
-		model = ModifiedResNet18Model().cuda()
+				model = ModifiedResNet34Model()
 	elif args.prune:
-		model = torch.load('model_18').cuda()
-	if args.train or args.prune:
-		print model
-	fine_tuner = PrunningFineTuner_ResNet18(args.train_path, args.test_path, model)
+		if torch.cuda.is_available():
+			model_name = "model"+"_" +args.arch + "_" +args.datasetname+"_"+args.subset
+			model = torch.load(model_name).cuda()
+		else:
+			model_name = "model"+"_" +args.arch + "_" +args.datasetname+"_"+args.subset
+			model = torch.load(model_name)	
+	if args.arch == "Res18":
+		fine_tuner = PrunningFineTuner_ResNet18(args.train_path, args.test_path, args.arch, args.datasetname, args.subset, model)
+	elif args.arch == "Res34":
+		fine_tuner = PrunningFineTuner_ResNet18(args.train_path, args.test_path, args.arch, args.datasetname, args.subset, model)
+	
+	# fine_tuner = PrunningFineTuner_ResNet18(args.train_path, args.test_path, model)
 
 	if args.train:
 		fine_tuner.train(epoches = 1)
-		torch.save(model, "model_18")
+		model_name = "model"+"_" +args.arch + "_" +args.datasetname+"_"+args.subset
+		torch.save(model, model_name)
 
 	elif args.prune:
 		fine_tuner.prune()

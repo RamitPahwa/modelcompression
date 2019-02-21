@@ -237,9 +237,7 @@ def prune_resnet18_conv_layer(model, layer_index, filter_index):
 		new_weights[:, filter_index * params_per_input_channel :] = old_weights[:, (filter_index + 1) * params_per_input_channel :]
 		new_linear_layer.bias.data = old_linear_layer.bias.data
 		new_linear_layer.weight.data = torch.from_numpy(new_weights).cuda()
-		fc = torch.nn.Sequential(
-			*(replace_layers(model.fc, i, [layer_index], \
-				[new_linear_layer]) for i, _ in enumerate(model.fc)))
+		fc = torch.nn.Sequential(*(replace_layers(model.fc, i, [layer_index], [new_linear_layer]) for i, _ in enumerate(model.fc)))
 
 		del model.fc
 		del next_conv
@@ -249,9 +247,9 @@ def prune_resnet18_conv_layer(model, layer_index, filter_index):
 	return model
 
 if __name__ == '__main__':
-	model = models.vgg16(pretrained=True)
+	model = models.resnet18(pretrained=True)
 	model.train()
 
 	t0 = time.time()
-	model = prune_conv_layer(model, 28, 10)
+	model = prune_resnet18_conv_layer(model, 28, 10)
 	print ("The prunning took", time.time() - t0)
