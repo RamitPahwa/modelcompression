@@ -400,7 +400,7 @@ if __name__ == '__main__':
             Trying to run on CPU will then trigger errors (too time-consuming anyway)!
         """
         if params.teacher == "resnet18":
-            teacher_model = resnet.ResNet18()
+            teacher_model = resnet.resnet18()
             teacher_checkpoint = 'experiments/base_resnet18/best.pth.tar'
             teacher_model = teacher_model.cuda() if params.cuda else teacher_model
 
@@ -425,8 +425,8 @@ if __name__ == '__main__':
             teacher_checkpoint = 'experiments/base_preresnet110/best.pth.tar'
             teacher_model = nn.DataParallel(teacher_model).cuda()
 
-        utils.load_checkpoint(teacher_checkpoint, teacher_model)
-
+        # utils.load_checkpoint(teacher_checkpoint, teacher_model)
+        teacher_model = model.load('resnet18cifar.net')
         # Train the model with KD
         logging.info("Experiment - model version: {}".format(params.model_version))
         logging.info("Starting training for {} epoch(s)".format(params.num_epochs))
