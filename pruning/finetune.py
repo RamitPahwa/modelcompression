@@ -300,7 +300,7 @@ class PrunningFineTuner_VGG16:
 		model_name = "prunned_model"+"_"+ arch + "_" + datasetname+"_"+ subset
 		torch.save(model, model_name)
 
-def get_args()
+def get_args():
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--train", dest="train", action="store_true")
 	parser.add_argument("--prune", dest="prune", action="store_true")
