@@ -20,7 +20,15 @@ class ModifiedResNet18Model(torch.nn.Module):
 	def __init__(self):
 		super(ModifiedResNet18Model, self).__init__()
 
-		model = models.resnet18(pretrained=True)#squeezenet1_1
+		# model = models.resnet18(pretrained=True)
+		'''
+		# for CIFAR-10
+		model = torch.load('resnet18cifar.net')
+		'''
+		# for CIFAR-100
+		model = torch.load('resnet18_cifar100.net')
+
+		#squeezenet1_1
 		#model = torch.load('/home/yq/work/face_class/id_rec_resnet_copy/id_rec_resnet/logs/resnet18-1/model.bin')
 		modules = list(model.children())[:-1]      # delete the last fc layer.
 		model = nn.Sequential(*modules)
@@ -37,7 +45,7 @@ class ModifiedResNet18Model(torch.nn.Module):
 			nn.Dropout(),
 			nn.Linear(400,256),
 			nn.ReLU(inplace=True),
-			nn.Linear(256, 100))
+			nn.Linear(256, 5))
 		#modules = list(resnet.children())[:-1]      # delete the last fc layer.
 		#resnet = nn.Sequential(*modules)
 		#self.classifier = nn.Sequential(
@@ -55,6 +63,55 @@ class ModifiedResNet18Model(torch.nn.Module):
 		x = x.view(x.size(0), -1)
 		x = self.fc(x)#self.classifier(x)
 		return x
+
+class ModifiedResNet34Model(torch.nn.Module):
+	def __init__(self):
+		super(ModifiedResNet34Model, self).__init__()
+
+		# model = models.resnet18(pretrained=True)
+		'''
+		# for CIFAR-10
+		model = torch.load('resnet34cifar.net')
+		'''
+		# for CIFAR-100
+		model = torch.load('resnet34_cifar100.net')
+
+		#squeezenet1_1
+		#model = torch.load('/home/yq/work/face_class/id_rec_resnet_copy/id_rec_resnet/logs/resnet18-1/model.bin')
+		modules = list(model.children())[:-1]      # delete the last fc layer.
+		model = nn.Sequential(*modules)
+		self.features = model
+		print("start pruning:")
+		for param in self.features.parameters():
+			param.requires_grad = False
+		#TO-DO CHANGE final output classes
+		self.fc = nn.Sequential(
+			#nn.Linear(512, 100)
+			nn.Dropout(),
+			nn.Linear(512,400),
+			nn.ReLU(inplace=True),
+			nn.Dropout(),
+			nn.Linear(400,256),
+			nn.ReLU(inplace=True),
+			nn.Linear(256, 4))
+		#modules = list(resnet.children())[:-1]      # delete the last fc layer.
+		#resnet = nn.Sequential(*modules)
+		#self.classifier = nn.Sequential(
+		#    nn.Dropout(),
+		#    nn.Linear(512, 256),#25088
+		#    nn.ReLU(inplace=True),
+		    #nn.Dropout(),
+		    #nn.Linear(2048, 2048),
+		    #nn.ReLU(inplace=True),
+		#    nn.Linear(256, 100))
+		#self.features.fc = self.classifier
+
+	def forward(self, x):
+		x = self.features(x)
+		x = x.view(x.size(0), -1)
+		x = self.fc(x)#self.classifier(x)
+		return x
+
 
 class FilterPrunner:
 	def __init__(self, model):
@@ -175,7 +232,7 @@ class FilterPrunner:
 		return filters_to_prune				
 
 class PrunningFineTuner_ResNet18:
-	def __init__(self, train_path, test_path, arch, datasetname , subset, model):
+	def __init__(self, train_path, test_path, arch , datasetname , subset, model):
 		self.train_data_loader = dataset.loader(train_path)
 		self.test_data_loader = dataset.test_loader(test_path)
 
@@ -183,6 +240,9 @@ class PrunningFineTuner_ResNet18:
 		self.criterion = torch.nn.CrossEntropyLoss()
 		self.prunner = FilterPrunner(self.model) 
 		self.model.train()
+		self.arch = arch
+		self.datasetname = datasetname
+		self.subset = subset
 
 	def test(self):
 		self.model.eval()
@@ -319,7 +379,7 @@ class PrunningFineTuner_ResNet18:
 
 		print ("Finished. Going to fine tune the model a bit more")
 		self.train(optimizer, epoches = 1)
-		model_name = "prunned_model"+"_"+ arch + "_" + datasetname+"_"+ subset
+		model_name = "prunned_model"+"_"+ self.arch + "_" + self.datasetname+"_"+ self.subset
 		torch.save(model, model_name)
 		print("All Pruning End !")
 		

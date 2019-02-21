@@ -20,7 +20,7 @@ else:
 
 def unpickle(file):
     with open(file, 'rb') as fo:
-        dict = pickle.load(fo, encoding='utf-8')
+        dict = pickle.load(fo)
     return dict
 
 '''
