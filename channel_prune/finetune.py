@@ -22,7 +22,7 @@ class ModifiedResNet18Model(torch.nn.Module):
 		model = models.resnet18(pretrained=True)#squeezenet1_1
 		#model = torch.load('/home/yq/work/face_class/id_rec_resnet_copy/id_rec_resnet/logs/resnet18-1/model.bin')
 		modules = list(model.children())[:-1]      # delete the last fc layer.
-                model = nn.Sequential(*modules)
+		model = nn.Sequential(*modules)
 		self.features = model
 		print("start pruning:")
 		for param in self.features.parameters():
@@ -337,6 +337,7 @@ def get_args():
     parser.add_argument("--train_path", type = str, default = "train")
     parser.add_argument("--test_path", type = str, default = "test")
 	parser.add_argument("--dataset", type=str, default="CIFAR10")
+	parser.add_argument("--subset", type=str, default="vehicles")
 	parser.add_argument("--arch", type=str, default="Res18")
     parser.set_defaults(train=False)
     parser.set_defaults(prune=False)
@@ -345,7 +346,23 @@ def get_args():
 
 if __name__ == '__main__':
 	args = get_args()
-
+	if args.train:
+		if args.arch == "VGG16": 
+			if torch.cuda.is_available():
+				model = ModifiedVGG16Model().cuda()
+			else:
+				model = ModifiedVGG16Model()
+		elif args.arch == "VGG19":
+			if torch.cuda.is_available():
+				model = ModifiedVGG19Model().cuda()
+			else:
+				model = ModifiedVGG19Model()
+		elif args.arch == "VGG11":
+			if torch.cuda.is_available():
+				model = ModifiedVGG11Model().cuda()
+			else:
+				model = ModifiedVGG11Model()
+	
 	if args.train:
 		model = ModifiedResNet18Model().cuda()
 	elif args.prune:
