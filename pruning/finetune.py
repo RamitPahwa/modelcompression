@@ -9,6 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import dataset
+from model import *
 from prune import *
 import argparse
 from operator import itemgetter
@@ -44,8 +45,10 @@ class ModifiedVGG19Model(torch.nn.Module):
 	def __init__(self):
 		super(ModifiedVGG19Model, self).__init__()
 
-		model = models.vgg19(pretrained=True)
+		# model = models.vgg19(pretrained=True)
+		model = torch.load('vgg19cifar100.net')
 		self.features = model.features
+		print('hi')
 
 		for param in self.features.parameters():
 			param.requires_grad = False
