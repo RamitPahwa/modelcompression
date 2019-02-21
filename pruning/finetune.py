@@ -21,6 +21,9 @@ class ModifiedVGG16Model(torch.nn.Module):
 		super(ModifiedVGG16Model, self).__init__()
 
 		model = models.vgg16(pretrained=True)
+		'''
+		NO model from ashok found maybbe add IMAGENET
+		'''
 		self.features = model.features
 
 		for param in self.features.parameters():
@@ -46,7 +49,12 @@ class ModifiedVGG19Model(torch.nn.Module):
 		super(ModifiedVGG19Model, self).__init__()
 
 		# model = models.vgg19(pretrained=True)
+		# for Cifar-100
 		model = torch.load('vgg19cifar100.net')
+		'''
+		# for Cifar-10
+		model = torch.load('cifar_vgg19.net')
+		'''
 		self.features = model.features
 		print('hi')
 
@@ -73,6 +81,8 @@ class ModifiedVGG11Model(torch.nn.Module):
 		super(ModifiedVGG11Model, self).__init__()
 
 		model = models.vgg11(pretrained=True)
+		# for CIFAR-10
+		model = torch.load('vgg11cifar.net')
 		self.features = model.features
 
 		for param in self.features.parameters():

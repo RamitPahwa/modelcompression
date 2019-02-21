@@ -17,9 +17,12 @@ At each pruning step 512 filters are removed from the network.
 
 Usage
 -----
+Use info in docker folder to setup a docker env.
+
 In `dataset.py` make change according to dataset either CIFAR10 or CIFAR100 as well as the subset we want and comment the other loader.Use `time` in front of python command for prunning time
 
 In `finetune.py` change the output classes according to the no. of classes in subset in `ModifiedVGG16Model` `ModifiedVGG11Model` and `ModifiedVGG19Model`
+also switch teacher network loading where neccessary in the same classes above
 
 Training:
 `python finetune.py --train --train_path ../data/ --test_path ../data/ --dataset CIFAR10 --arch VGG16 --subset animals`
