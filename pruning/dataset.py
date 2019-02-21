@@ -12,9 +12,13 @@ from PIL import Image
 import glob
 import os
 import data_loader
-
+import sys
+if sys.version_info[0] == 2:
+    import cPickle as pickle
+else:
+    import pickle
+    
 def unpickle(file):
-    import cPickle
     with open(file, 'rb') as fo:
         dict = cPickle.load(fo)
     return dict
