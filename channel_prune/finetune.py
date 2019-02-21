@@ -198,15 +198,16 @@ class FilterPrunner:
 
 	def model_forward(self, x):
 		for layer, (name, module) in enumerate(self.model.features._modules.items()):
-					if layer < 4 or layer > 7:
-						x = module(x)
-					else:
-						for kt in range(2):
-							x = self.model.features._modules.items()[layer][1][kt].conv1(x)
-							x = self.model.features._modules.items()[layer][1][kt].bn1(x)
-							x = self.model.features._modules.items()[layer][1][kt].relu(x)
-							x = self.model.features._modules.items()[layer][1][kt].conv2(x)
-							x = self.model.features._modules.items()[layer][1][kt].bn2(x)
+			print(layer, name, module)
+			if layer < 4 or layer > 7:
+				x = module(x)
+			else:
+				for kt in range(2):
+					x = self.model.features._modules.items()[layer][1][kt].conv1(x)
+					x = self.model.features._modules.items()[layer][1][kt].bn1(x)
+					x = self.model.features._modules.items()[layer][1][kt].relu(x)
+					x = self.model.features._modules.items()[layer][1][kt].conv2(x)
+					x = self.model.features._modules.items()[layer][1][kt].bn2(x)
 		return self.model.fc(x.view(x.size(0), -1))
 
 	def get_prunning_plan(self, num_filters_to_prune):
