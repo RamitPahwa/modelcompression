@@ -134,6 +134,7 @@ class FilterPrunner:
 		activation_index = 0
 		kk = 0
 		for layer, (name, module) in enumerate(self.model.features._modules.items()):
+			print(layer, name, module)
 			if layer < 4 or layer > 7 :
 				x = module(x)
 			if isinstance(module, torch.nn.modules.conv.Conv2d): 
