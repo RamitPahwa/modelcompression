@@ -57,7 +57,7 @@ class ModifiedVGG19Model(torch.nn.Module):
 		    nn.Dropout(),
 		    nn.Linear(4096, 4096),
 		    nn.ReLU(inplace=True),
-		    nn.Linear(4096, 4))
+		    nn.Linear(4096, 5))
 
 	def forward(self, x):
 		x = self.features(x)
@@ -82,7 +82,7 @@ class ModifiedVGG11Model(torch.nn.Module):
 		    nn.Dropout(),
 		    nn.Linear(4096, 4096),
 		    nn.ReLU(inplace=True),
-		    nn.Linear(4096, 4))
+		    nn.Linear(4096, 5))
 
 	def forward(self, x):
 		x = self.features(x)
@@ -292,15 +292,15 @@ class PrunningFineTuner_VGG16:
 			self.test()
 			print ("Fine tuning to recover from prunning iteration.")
 			optimizer = optim.SGD(self.model.parameters(), lr=0.001, momentum=0.9)
-			self.train(optimizer, epoches = 1)
+			self.train(optimizer, epoches = 10)
 
 
 		print ("Finished. Going to fine tune the model a bit more")
-		self.train(optimizer, epoches = 1)
+		self.train(optimizer, epoches = 10)
 		model_name = "prunned_model"+"_"+ arch + "_" + datasetname+"_"+ subset
 		torch.save(model, model_name)
 
-def get_args():
+def get_args()
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--train", dest="train", action="store_true")
 	parser.add_argument("--prune", dest="prune", action="store_true")
@@ -351,7 +351,7 @@ if __name__ == '__main__':
 		fine_tuner = PrunningFineTuner_VGG16(args.train_path, args.test_path, args.arch, args.datasetname, args.subset, model)
 
 	if args.train:
-		fine_tuner.train(epoches = 1)
+		fine_tuner.train(epoches = 15)
 		model_name = "model"+"_" +args.arch + "_" +args.datasetname+"_"+args.subset
 		torch.save(model, model_name)
 
