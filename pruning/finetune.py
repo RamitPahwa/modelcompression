@@ -233,6 +233,8 @@ class PrunningFineTuner_VGG16:
 			output = self.prunner.forward(input)
 			self.criterion(output, Variable(label)).backward()
 		else:
+			print(self.model(input).shape)
+			print(Variable(label).shape)
 			self.criterion(self.model(input), Variable(label)).backward()
 			optimizer.step()
 
@@ -273,7 +275,7 @@ class PrunningFineTuner_VGG16:
 		num_filters_to_prune_per_iteration = 512
 		iterations = int(float(number_of_filters) / num_filters_to_prune_per_iteration)
 
-		iterations = int(iterations * 2.0 / 3)
+		iterations = int(iterations * 2.0 / 3.0)
 
 		print ("Number of prunning iterations to reduce 67% CNN filters", iterations)
 
