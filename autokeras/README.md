@@ -1,7 +1,12 @@
 `pip install autokeras`
 
 python = 3
+
 `https://www.simonwenkel.com/2018/09/02/autokeras-cifar10_100.html`
+
+GOOGLE COLAB NOTEBOOK 
+CIFAR10 : `https://colab.research.google.com/drive/1n0_AYBOwoQiW2JL7Q_k1nQ_duB03Zevj`
+CIFAR100 : `https://colab.research.google.com/drive/1cAigvmWjLEDhbR_SPdK0x3Z4OjcDqcL3`
 Usage
 
 SELECT the Desired Subset for cifar 10 in  `main.py ` and cifar100 in `main_cifar100.py`
