@@ -19,6 +19,7 @@ import utils
 import model.net as net
 import model.data_loader as data_loader
 import model.resnet as resnet
+import model.vgg as vgg
 import model.wrn as wrn
 import model.densenet as densenet
 import model.resnext as resnext
@@ -32,6 +33,83 @@ parser.add_argument('--model_dir', default='experiments/base_model',
 parser.add_argument('--restore_file', default=None,
                     help="Optional, name of the file in --model_dir \
                     containing weights to reload before training")  # 'best' or 'train'
+parser.add_argument("--datasetname", type=str, default="CIFAR10")
+parser.add_argument("--subset", type=str, default="vehicles")
+parser.add_argument("--arch", type=str, default="VGG16")
+
+class ModifiedResNet18Model(torch.nn.Module):
+	def __init__(self):
+		super(ModifiedResNet18Model, self).__init__()
+
+		# model = models.resnet18(pretrained=True)
+		'''
+		# for CIFAR-10
+		model = torch.load('resnet18cifar.net')
+		'''
+		# for CIFAR-100
+		model = torch.load('resnet18_cifar100.net')
+
+		#squeezenet1_1
+		#model = torch.load('/home/yq/work/face_class/id_rec_resnet_copy/id_rec_resnet/logs/resnet18-1/model.bin')
+		modules = list(model.children())[:-1]      # delete the last fc layer.
+		model = nn.Sequential(*modules)
+		self.features = model
+		print("start pruning:")
+		for param in self.features.parameters():
+			param.requires_grad = False
+		#TO-DO CHANGE final output classes
+		self.fc = nn.Sequential(
+			#nn.Linear(512, 100)
+			nn.Dropout(),
+			nn.Linear(512,400),
+			nn.ReLU(inplace=True),
+			nn.Dropout(),
+			nn.Linear(400,256),
+			nn.ReLU(inplace=True),
+			nn.Linear(256, 5))
+
+	def forward(self, x):
+		x = self.features(x)
+		x = x.view(x.size(0), -1)
+		x = self.fc(x)#self.classifier(x)
+		return x
+
+class ModifiedResNet34Model(torch.nn.Module):
+	def __init__(self):
+		super(ModifiedResNet34Model, self).__init__()
+
+		# model = models.resnet18(pretrained=True)
+		'''
+		# for CIFAR-10
+		model = torch.load('resnet34cifar.net')
+		'''
+		# for CIFAR-100
+		model = torch.load('resnet34_cifar100.net')
+
+		#squeezenet1_1
+		#model = torch.load('/home/yq/work/face_class/id_rec_resnet_copy/id_rec_resnet/logs/resnet18-1/model.bin')
+		modules = list(model.children())[:-1]      # delete the last fc layer.
+		model = nn.Sequential(*modules)
+		self.features = model
+		print("start pruning:")
+		for param in self.features.parameters():
+			param.requires_grad = False
+		#TO-DO CHANGE final output classes
+		self.fc = nn.Sequential(
+			#nn.Linear(512, 100)
+			nn.Dropout(),
+			nn.Linear(512,400),
+			nn.ReLU(inplace=True),
+			nn.Dropout(),
+			nn.Linear(400,256),
+			nn.ReLU(inplace=True),
+			nn.Linear(256, 4))
+
+	def forward(self, x):
+		x = self.features(x)
+		x = x.view(x.size(0), -1)
+		x = self.fc(x)#self.classifier(x)
+		return x
 
 
 def train(model, optimizer, loss_fn, dataloader, metrics, params):
@@ -375,6 +453,17 @@ if __name__ == '__main__':
        WideResNet and DenseNet were trained on multi-GPU; need to specify a dummy
        nn.DataParallel module to correctly load the model parameters
     """
+    if params.teacher == "resnet18":
+            if torch.cuda.is_available():
+                model_resnet18 = ModifiedResNet18Model().cuda()
+            else:
+                model_resnet18 = ModifiedResNet18Model()
+    elif params.teacher == "resnet34":
+            if torch.cuda.is_available():
+                model_resnet34 = ModifiedResNet34Model().cuda()
+            else:
+                model_resnet34 = ModifiedResNet34Model()
+    
     if "distill" in params.model_version:
 
         # train a 5-layer CNN or a 18-layer ResNet with knowledge distillation
@@ -387,8 +476,7 @@ if __name__ == '__main__':
         
         elif params.model_version == 'resnet18_distill':
             model = resnet.ResNet18().cuda() if params.cuda else resnet.ResNet18()
-            optimizer = optim.SGD(model.parameters(), lr=params.learning_rate,
-                                  momentum=0.9, weight_decay=5e-4)
+            optimizer = optim.SGD(model.parameters(), lr=params.learning_rate,momentum=0.9, weight_decay=5e-4)
             # fetch loss function and metrics definition in model files
             loss_fn_kd = net.loss_fn_kd
             metrics = resnet.metrics
@@ -399,10 +487,11 @@ if __name__ == '__main__':
             therefore need to call "nn.DaraParallel" to correctly load the model weights
             Trying to run on CPU will then trigger errors (too time-consuming anyway)!
         """
+
         if params.teacher == "resnet18":
             teacher_model = resnet.resnet18()
-            teacher_checkpoint = 'experiments/base_resnet18/best.pth.tar'
-            teacher_model = teacher_model.cuda() if params.cuda else teacher_model
+            # teacher_checkpoint = 'experiments/base_resnet18/best.pth.tar'
+            # teacher_model = teacher_model.cuda() if params.cuda else teacher_model
 
         elif params.teacher == "wrn":
             teacher_model = wrn.WideResNet(depth=28, num_classes=10, widen_factor=10,
@@ -426,7 +515,13 @@ if __name__ == '__main__':
             teacher_model = nn.DataParallel(teacher_model).cuda()
 
         # utils.load_checkpoint(teacher_checkpoint, teacher_model)
-        teacher_model = model.load('resnet18cifar.net')
+        # teacher_model = model.load('resnet18cifar.net')
+        if torch.cuda.is_available():
+            model_name = "model"+"_" +args.arch + "_" +args.datasetname+"_"+args.subset
+            teacher_model = torch.load(model_name).cuda()
+        else:
+            model_name = "model"+"_" +args.arch + "_" +args.datasetname+"_"+args.subset
+            teacher_model = torch.load(model_name)
         # Train the model with KD
         logging.info("Experiment - model version: {}".format(params.model_version))
         logging.info("Starting training for {} epoch(s)".format(params.num_epochs))
