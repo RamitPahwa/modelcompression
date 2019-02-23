@@ -228,13 +228,13 @@ class PrunningFineTuner_VGG16:
 	def train_batch(self, optimizer, batch, label, rank_filters):
 		self.model.zero_grad()
 		input = Variable(batch)
-		print(type(self.model(input)))
+		# print(type(self.model(input)))
 		if rank_filters:
 			output = self.prunner.forward(input)
 			self.criterion(output, Variable(label)).backward()
 		else:
-			print(type(self.model(input)))
-			print(type(Variable(label)))
+			# print(type(self.model(input)))
+			# print(type(Variable(label)))
 			self.criterion(self.model(input), Variable(label)).backward()
 			optimizer.step()
 
