@@ -216,7 +216,7 @@ class PrunningFineTuner_VGG16:
 		if optimizer is None:
 			optimizer = \
 				optim.SGD(model.classifier.parameters(), 
-					lr=0.0001, momentum=0.9)
+					lr=0.1, momentum=0.9)
 
 		for i in range(epoches):
 			print ("Epoch: ", i)
@@ -307,7 +307,7 @@ class PrunningFineTuner_VGG16:
 
 
 		print ("Finished. Going to fine tune the model a bit more")
-		self.train(optimizer, epoches = 10)
+		self.train(optimizer, epoches = 15)
 		model_name = "prunned_model"+"_"+ arch + "_" + datasetname+"_"+ subset
 		torch.save(model, model_name)
 
@@ -362,7 +362,7 @@ if __name__ == '__main__':
 		fine_tuner = PrunningFineTuner_VGG16(args.train_path, args.test_path, args.arch, args.datasetname, args.subset, model)
 
 	if args.train:
-		fine_tuner.train(epoches = 15)
+		fine_tuner.train(epoches = 25)
 		model_name = "model"+"_" +args.arch + "_" +args.datasetname+"_"+args.subset
 		torch.save(model, model_name)
 
