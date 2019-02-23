@@ -2,6 +2,7 @@ from keras.datasets import cifar10
 from keras.datasets import cifar100
 import numpy as np 
 from autokeras import ImageClassifier
+from sklearn.metrics import accuracy_score
 
 # loadning cifar10 from keras
 
@@ -10,18 +11,19 @@ from autokeras import ImageClassifier
 def unpickle(file):
     import pickle
     with open(file, 'rb') as fo:
-        dict = pickle.load(fo, encoding='bytes')
+        dict = pickle.load(fo, encoding='utf8')
     return dict
     
 # for CIFAR100
 insect_name = ['bee', 'beetle', 'butterfly', 'caterpillar', 'cockroach'] 
 fruit_name = ['apple', 'mushroom', 'orange', 'pear', 'sweet_pepper']
 #cifar-100 name-class map 
-meta = unpickle('../data/cifar-100-python/meta')
+meta = unpickle('cifar-100-python/meta')
+print(meta)
 name_class_cifar100 = {}
 for i,name in enumerate(meta['fine_label_names']):
     name_class_cifar100[name]=i
-
+    
 # select the time you want to run the search for in hrs 
 time_array =[1,2,3,4,5,6,7,8,9,10]
 # change index to change time for NAS
@@ -88,3 +90,7 @@ clf = ImageClassifier(verbose=True, augment=True, searcher_args={'trainer_args':
 clf.fit(X_train_selected, y_train_selected, time_limit=(1*60*60))
 
 clf.final_fit(X_train_selected, y_train_selected, X_test_selected, y_test_selected, retrain=False)
+
+
+y_prediction = clf.predict(X_test)
+accuracy_score(y_true=y_test, y_pred=y_prediction)

@@ -1,7 +1,7 @@
 `pip install autokeras`
 
 python = 3
-
+`https://www.simonwenkel.com/2018/09/02/autokeras-cifar10_100.html`
 Usage
 
 SELECT the Desired Subset for cifar 10 in  `main.py ` and cifar100 in `main_cifar100.py`
