@@ -36,15 +36,14 @@ name_exp1 = ['dog','cat']
 # change the names in the CIFARSel functional call
 
 def loader(path, batch_size=200, num_workers=4, pin_memory=True):
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    # normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     return data.DataLoader(
         data_loader.CIFARSel(root = path,names = name_cifar10_vehicles ,name_class=name_class,train=True,
-                             transform = transforms.Compose([
-                                 transforms.Scale(256),
-                                 transforms.RandomSizedCrop(224),
-                                 transforms.RandomHorizontalFlip(),
-                                 transforms.ToTensor(),
-                                 normalize,
+                             transform=transforms.Compose([
+                       transforms.RandomCrop(32, padding=4),
+                       transforms.RandomHorizontalFlip(),
+                       transforms.ToTensor(),
+                       transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
                              ])),
         batch_size=batch_size,
         shuffle=True,
@@ -52,14 +51,10 @@ def loader(path, batch_size=200, num_workers=4, pin_memory=True):
         pin_memory=pin_memory)
 
 def test_loader(path, batch_size=200, num_workers=4, pin_memory=True):
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+    # normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     return data.DataLoader(
         data_loader.CIFARSel(root = path,names = name_cifar10_vehicles, name_class=name_class,train=False,
-                             transform = transforms.Compose([
-                                 transforms.Scale(256),
-                                 transforms.CenterCrop(224),
-                                 transforms.ToTensor(),
-                                 normalize,
+                             transform=transforms.Compose([transforms.ToTensor(),transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
                              ])),
         batch_size=batch_size,
         shuffle=False,
