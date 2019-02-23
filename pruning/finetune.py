@@ -233,8 +233,8 @@ class PrunningFineTuner_VGG16:
 			output = self.prunner.forward(input)
 			self.criterion(output, Variable(label)).backward()
 		else:
-			print(self.model(input).shape)
-			print(Variable(label).shape)
+			print(type(self.model(input)))
+			print(type(Variable(label)))
 			self.criterion(self.model(input), Variable(label)).backward()
 			optimizer.step()
 
