@@ -23,7 +23,7 @@ def unpickle(file):
         dict = pickle.load(fo)
     return dict
 
-'''
+
 # For CIFAR-10
 # cifar-10 name-class map
 name_class={'airplane':0,'automobile':1,'bird':2,'cat':3,'deer':4,'dog':5,'frog':6,'horse':7,'ship':8,'truck':9}
@@ -107,5 +107,5 @@ def test_loader(path, batch_size=32, num_workers=4, pin_memory=True):
         shuffle=False,
         num_workers=num_workers,
         pin_memory=pin_memory)
-
+'''
 print('OK')

@@ -17,10 +17,11 @@ if sys.version_info[0] == 2:
     import cPickle as pickle
 else:
     import pickle
-    
+
 def unpickle(file):
+    import pickle
     with open(file, 'rb') as fo:
-        dict = pickle.load(fo)
+        dict = pickle.load(fo, encoding='bytes')
     return dict
 
 '''
