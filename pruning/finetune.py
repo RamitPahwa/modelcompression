@@ -80,14 +80,14 @@ class ModifiedVGG11Model(torch.nn.Module):
 	def __init__(self):
 		super(ModifiedVGG11Model, self).__init__()
 
-		model = models.vgg11(pretrained=True)
+		# model = models.vgg11(pretrained=True)
 		# for CIFAR-10
 		model = torch.load('vgg11cifar.net')
 		self.features = model.features
 
 		for param in self.features.parameters():
 			param.requires_grad = False
-
+		print(self.features.shape)
 		self.classifier = nn.Sequential(
 		    nn.Dropout(),
 		    nn.Linear(25088, 4096),
