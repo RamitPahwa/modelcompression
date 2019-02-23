@@ -87,15 +87,13 @@ class ModifiedVGG11Model(torch.nn.Module):
 
 		for param in self.features.parameters():
 			param.requires_grad = False
-		print(self.features.shape)
+		# print(self.features.shape)
 		self.classifier = nn.Sequential(
 		    nn.Dropout(),
-		    nn.Linear(25088, 4096),
+		    nn.Linear(512, 100),
 		    nn.ReLU(inplace=True),
-		    nn.Dropout(),
-		    nn.Linear(4096, 4096),
-		    nn.ReLU(inplace=True),
-		    nn.Linear(4096, 3))
+			nn.Dropout(),
+		    nn.Linear(100, 3))
 
 	def forward(self, x):
 		x = self.features(x)
