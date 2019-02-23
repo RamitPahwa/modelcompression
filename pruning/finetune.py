@@ -63,12 +63,10 @@ class ModifiedVGG19Model(torch.nn.Module):
 
 		self.classifier = nn.Sequential(
 		    nn.Dropout(),
-		    nn.Linear(25088, 4096),
+		    nn.Linear(512, 100),
 		    nn.ReLU(inplace=True),
-		    nn.Dropout(),
-		    nn.Linear(4096, 4096),
-		    nn.ReLU(inplace=True),
-		    nn.Linear(4096, 5))
+			nn.Dropout(),
+		    nn.Linear(100, 3))
 
 	def forward(self, x):
 		x = self.features(x)
