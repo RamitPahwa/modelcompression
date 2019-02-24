@@ -26,7 +26,7 @@ class ModifiedVGG16Model(torch.nn.Module):
 		NO model from ashok found maybbe add IMAGENET
 		'''
 		self.features = model.features
-
+		
 		for param in self.features.parameters():
 			param.requires_grad = False
 
@@ -292,7 +292,7 @@ class PrunningFineTuner_VGG16:
 			param.requires_grad = True
 
 		number_of_filters = self.total_num_filters()
-		num_filters_to_prune_per_iteration = 230
+		num_filters_to_prune_per_iteration = 512
 		iterations = int(float(number_of_filters) / num_filters_to_prune_per_iteration)
 
 		iterations = int(iterations * 2.0 / 3.0)
