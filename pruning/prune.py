@@ -12,7 +12,7 @@ def replace_layers(model, i, indexes, layers):
 	return model[i]
 
 def prune_vgg16_conv_layer(model, layer_index, filter_index):
-	print(layer_index)
+	# print(layer_index)
 	_, conv = list(model.features._modules.items())[layer_index]
 	bn_layer_index = layer_index + 1
 	relu_layer_index =layer_index+2
@@ -70,11 +70,12 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 	new_bn =torch.nn.BatchNorm2d(num_features = conv.out_channels - 1, eps=1e-05, momentum=0.1, affine=True)
 	old_bweights = bn.weight.data.cpu().numpy()
 	new_bweights = new_bn.weight.data.cpu().numpy()
-	print('obnw')
-	print(old_bweights.shape)
-	print('nbnw')
-	print(new_bweights.shape)
-	new_bweights[:filter_index] = old_bweights[:filter_index]
+	# print('obnw')
+	# print(old_bweights.shape)
+	# print('nbnw')
+	# print(new_bweights.shape)
+	for i in range(0,filter_index):
+		new_bweights[i] = old_bweights[i]
 	# new_bweights[filter_index :new_bweights.shape[0]] = old_bweights[filter_index + 1 : old_bweights.shape[0]]
 	for i in range(filter_index,new_bweights.shape[0]-1):
 		new_bweights[i] = old_bweights[i+1]
@@ -147,18 +148,20 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 		# next_new_conv.running_var.data = next_conv.running_var.data
 	
 	if not next_bn is None:
-		print('next_conv.out_channels')
-		print(next_conv.out_channels)
+		# print('next_conv.out_channels')
+		# print(next_conv.out_channels)
 		next_new_bn = torch.nn.BatchNorm2d(num_features = next_conv.out_channels - 1, eps=1e-05, momentum=0.1, affine=True)
 
 		bold_weights = next_bn.weight.data.cpu().numpy()
 		bnew_weights = next_new_bn.weight.data.cpu().numpy()
-
-		bnew_weights[: filter_index] = bold_weights[ : filter_index]
+		
+		for i in range(0,filter_index):
+			bnew_weights[i] = bold_weights[i]
+			
 		for i in range(filter_index,bnew_weights.shape[0]-1):
 			bnew_weights[i] = bold_weights[i+1]
 		print('here i am ')
-		print(bnew_weights.shape)
+		# print(bnew_weights.shape)
 		if torch.cuda.is_available():
 			next_new_bn.weight.data = torch.from_numpy(bnew_weights).cuda()
 		else:
