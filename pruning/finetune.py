@@ -292,7 +292,7 @@ class PrunningFineTuner_VGG16:
 			param.requires_grad = True
 
 		number_of_filters = self.total_num_filters()
-		num_filters_to_prune_per_iteration = 512
+		num_filters_to_prune_per_iteration = 256
 		iterations = int(float(number_of_filters) / num_filters_to_prune_per_iteration)
 
 		iterations = int(iterations * 2.0 / 3.0)
@@ -323,11 +323,11 @@ class PrunningFineTuner_VGG16:
 			self.test()
 			print ("Fine tuning to recover from prunning iteration.")
 			optimizer = optim.SGD(self.model.parameters(), lr=0.001, momentum=0.9)
-			self.train(optimizer, epoches = 10)
+			self.train(optimizer, epoches = 1)
 
 
 		print ("Finished. Going to fine tune the model a bit more")
-		self.train(optimizer, epoches = 15)
+		self.train(optimizer, epoches = 1)
 		model_name = "prunned_model"+"_"+ arch + "_" + datasetname+"_"+ subset
 		torch.save(model, model_name)
 
