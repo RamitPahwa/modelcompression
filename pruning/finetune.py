@@ -195,23 +195,24 @@ class PrunningFineTuner_VGG16:
 		self.criterion = torch.nn.CrossEntropyLoss()
 		self.prunner = FilterPrunner(self.model) 
 		self.model.train()
-	def numParams(model):
-		return sum([len(w.view(-1)) for w in model.parameters()])
+	
+	def numParams(self):
+		return sum([len(w.view(-1)) for w in self.model.parameters()])
 
-	def test_module(model, test_loader):
-		model.eval()
+	def test_module(self, test_loader):
+		self.model.eval()
 		correct = 0
 		total = 0
 		for i, (batch, label) in enumerate(test_loader):
 			if torch.cuda.is_available():
 				batch = batch.cuda()
-			output = model(Variable(batch))
+			output = self.model(Variable(batch))
 			pred = output.data.max(1)[1]
 			correct = correct + pred.cpu().eq(label).sum()
 			total = total + label.size(0)
 		print ("Accuracy :",float(correct) / total)
 		val_accuracy = float(correct) / total
-		num_params = numParams(model)
+		num_params = self.numParams()
 		# now save the model if it has better accuracy than the best model seen so forward
 		return val_accuracy, num_params
 
@@ -382,11 +383,11 @@ if __name__ == '__main__':
 		fine_tuner = PrunningFineTuner_VGG16(args.train_path, args.test_path, args.arch, args.datasetname, args.subset, model)
 
 	if args.train:
-		fine_tuner.train(epoches = 25)
+		fine_tuner.train(epoches = 10)
 		test_path = args.testpath 
 		test_loader = dataset.test_loader(test_path)
 		start_time = time.time()
-		accuracy, num_params = fine_tuner.test_module(model, test_loader)
+		accuracy, num_params = fine_tuner.test_module(test_loader)
 		inference_time = time.time() - start_time
 		print('Accuracy:'+str(accuracy))
 		print('num_params:'+str(num_params))
