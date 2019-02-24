@@ -224,7 +224,7 @@ class PrunningFineTuner_VGG16:
 		for i, (batch, label) in enumerate(self.test_data_loader):
 			if torch.cuda.is_available():
 				batch = batch.cuda()
-			output = model(Variable(batch))
+			output = self.model(Variable(batch))
 			pred = output.data.max(1)[1]
 			correct += pred.cpu().eq(label).sum()
 			total += label.size(0)
