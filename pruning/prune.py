@@ -63,7 +63,7 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 	else:
 		new_bn.bias.data = torch.from_numpy(bias)	
 
-	runavg_numpy = bn.running_mean.data.cpu().numpy()
+	runavg_numpy = bn.running_mean.cpu().numpy()
 
 	running_mean = np.zeros(shape = (runavg_numpy.shape[0] - 1), dtype = np.float32)
 	running_mean[:filter_index] = runavg_numpy[:filter_index]
@@ -74,7 +74,7 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 	else:
 		new_bn.running_mean.data = torch.from_numpy(running_mean)
 	
-	runvar_numpy = bn.running_var.data.cpu().numpy()
+	runvar_numpy = bn.running_var.cpu().numpy()
 
 	running_var = np.zeros(shape = (runvar_numpy.shape[0] - 1), dtype = np.float32)
 	running_var[:filter_index] = runvar_numpy[:filter_index]
