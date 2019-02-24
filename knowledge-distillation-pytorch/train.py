@@ -488,11 +488,10 @@ if __name__ == '__main__':
             Trying to run on CPU will then trigger errors (too time-consuming anyway)!
         """
 
-        if params.teacher == "resnet18":
-            teacher_model = resnet.resnet18()
+        # if params.teacher == "resnet18":
+        #     teacher_model = resnet.resnet18()
             # teacher_checkpoint = 'experiments/base_resnet18/best.pth.tar'
             # teacher_model = teacher_model.cuda() if params.cuda else teacher_model
-
         elif params.teacher == "wrn":
             teacher_model = wrn.WideResNet(depth=28, num_classes=10, widen_factor=10,
                                            dropRate=0.3)
@@ -515,13 +514,15 @@ if __name__ == '__main__':
             teacher_model = nn.DataParallel(teacher_model).cuda()
 
         # utils.load_checkpoint(teacher_checkpoint, teacher_model)
-        # teacher_model = model.load('resnet18cifar.net')
+        teacher_model = model.load('resnet18cifar.net')
+        '''
         if torch.cuda.is_available():
             model_name = "model"+"_" +args.arch + "_" +args.datasetname+"_"+args.subset
             teacher_model = torch.load(model_name).cuda()
         else:
             model_name = "model"+"_" +args.arch + "_" +args.datasetname+"_"+args.subset
             teacher_model = torch.load(model_name)
+        '''
         # Train the model with KD
         logging.info("Experiment - model version: {}".format(params.model_version))
         logging.info("Starting training for {} epoch(s)".format(params.num_epochs))
