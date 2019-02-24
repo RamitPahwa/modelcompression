@@ -70,9 +70,14 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 	new_bn =torch.nn.BatchNorm2d(num_features = conv.out_channels - 1, eps=1e-05, momentum=0.1, affine=True)
 	old_bweights = bn.weight.data.cpu().numpy()
 	new_bweights = new_bn.weight.data.cpu().numpy()
-
+	print('obnw')
+	print(old_bweights.shape)
+	print('nbnw')
+	print(new_bweights.shape)
 	new_bweights[:filter_index] = old_bweights[:filter_index]
-	new_bweights[filter_index :] = old_bweights[filter_index + 1 : old_bweights.shape[0]]
+	# new_bweights[filter_index :new_bweights.shape[0]] = old_bweights[filter_index + 1 : old_bweights.shape[0]]
+	for i in range(filter_index,len(new_bweights.shape[0])):
+		new_bweights[i] = old_bweights[i+1]
 	
 	if torch.cuda.is_available():
 		print('hi2')
