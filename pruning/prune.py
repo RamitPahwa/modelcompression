@@ -76,7 +76,7 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 	print(new_bweights.shape)
 	new_bweights[:filter_index] = old_bweights[:filter_index]
 	# new_bweights[filter_index :new_bweights.shape[0]] = old_bweights[filter_index + 1 : old_bweights.shape[0]]
-	for i in range(filter_index,len(new_bweights.shape[0])):
+	for i in range(filter_index,new_bweights.shape[0])):
 		new_bweights[i] = old_bweights[i+1]
 	
 	if torch.cuda.is_available():
