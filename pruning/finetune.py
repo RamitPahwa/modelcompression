@@ -366,7 +366,7 @@ if __name__ == '__main__':
 			else:
 				model = ModifiedVGG11Model()
 
-	
+	'''
 	elif args.prune:
 		if torch.cuda.is_available():
 			model_name = "model"+"_" +args.arch + "_" +args.datasetname+"_"+args.subset
@@ -374,7 +374,7 @@ if __name__ == '__main__':
 		else:
 			model_name = "model"+"_" +args.arch + "_" +args.datasetname+"_"+args.subset
 			model = torch.load(model_name)
-		
+	'''	
 	if args.arch == "VGG16":
 		fine_tuner = PrunningFineTuner_VGG16(args.train_path, args.test_path, args.arch, args.datasetname, args.subset, model)
 	elif args.arch == "VGG19":
@@ -393,8 +393,6 @@ if __name__ == '__main__':
 		print('num_params:'+str(num_params))
 		print('inference_time:'+str(inference_time))
 		model_name = "model"+"_" +args.arch + "_" +args.datasetname+"_"+args.subset
-		torch.save(model, model_name)
-
-	elif args.prune:
+		# torch.save(model, model_name)
 		fine_tuner.prune()
 		
