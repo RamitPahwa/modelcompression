@@ -76,14 +76,15 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 	# print('nbnw')
 	# print(new_bweights.shape)
 	for i in range(0,filter_index):
-		new_bweights[i] = old_bweights[i]
+		if i < new_bweights.shape[0]:
+			new_bweights[i] = old_bweights[i]
 	# new_bweights[:filter_index] = old_bweights[:filter_index]
 	# new_bweights[filter_index :new_bweights.shape[0]] = old_bweights[filter_index + 1 : old_bweights.shape[0]]
 	for i in range(filter_index,new_bweights.shape[0]-1):
 		new_bweights[i] = old_bweights[i+1]
 	
 	if torch.cuda.is_available():
-		print('hi2')
+		# print('hi2')
 		new_bn.weight.data = torch.from_numpy(new_bweights).cuda()
 	else:
 		new_bn.weight.data = torch.from_numpy(new_bweights)
@@ -95,7 +96,7 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 	bias[filter_index : ] = bn_bias_numpy[filter_index + 1 :]
 	
 	if torch.cuda.is_available():
-		print('hi')
+		# print('hi')
 		new_bn.bias.data = torch.from_numpy(bias).cuda()
 	else:
 		new_bn.bias.data = torch.from_numpy(bias)	
@@ -156,9 +157,13 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 
 		bold_weights = next_bn.weight.data.cpu().numpy()
 		bnew_weights = next_new_bn.weight.data.cpu().numpy()
+		i=0
 		
-		for i in range(0,filter_index):
+		while i<filter_index & i < bnew_weights.shape[0]:
+			print(i)
+			print('i)')
 			bnew_weights[i] = bold_weights[i]
+			i=i+1
 			# pdb.pdb.set_trace()
 		# bnew_weights[:filter_index] = bold_weights[:filter_index]	
 		for i in range(filter_index,bnew_weights.shape[0]-1):
