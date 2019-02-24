@@ -156,7 +156,7 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 		for i in range(filter_index,bnew_weights.shape[0]-1):
 			bnew_weights[i] = bold_weights[i+1]
 		print('here i am ')
-		print(bnew_weights_weight.shape)
+		print(bnew_weights.shape)
 		if torch.cuda.is_available():
 			next_new_bn.weight.data = torch.from_numpy(bnew_weights).cuda()
 		else:
@@ -168,7 +168,7 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 	
 	if not next_bn is None:
 	 	features = torch.nn.Sequential(
-	            *(replace_layers(model.features, i, [layer_index, layer_index+boffset], \
+	            *(replace_layers(model.features, i, [bn_layer_index, bn_layer_index+boffset], \
 	            	[new_bn, next_bn]) for i, _ in enumerate(model.features)))
 	 	del model.features
 	 	del bn
@@ -189,7 +189,11 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 		model.features = torch.nn.Sequential(
 				*(replace_layers(model.features, i, [layer_index], \
 					[new_conv]) for i, _ in enumerate(model.features)))
+		model.features = torch.nn.Sequential(
+				*(replace_layers(model.features, i, [bn_layer_index], \
+					[new_bn]) for i, _ in enumerate(model.features)))
 		layer_index = 0
+		bn_layer_index = layer_index +1
 		old_linear_layer = None
 		for _, module in model.classifier._modules.items():
 			if isinstance(module, torch.nn.Linear):
