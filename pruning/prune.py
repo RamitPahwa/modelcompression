@@ -132,8 +132,8 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 			next_new_bn.weight.data = torch.from_numpy(new_weights)
 
 		next_new_bn.bias.data = next_bn.bias.data
-		next_new_bn.running_mean.data = next_bn.running_mean.data
-		next_new_bn.running_mean.data = next_bn.running_mean.data
+		next_new_bn.running_mean = next_bn.running_mean
+		next_new_bn.running_mean= next_bn.running_mean
 
 	if not next_conv is None:
 		next_new_conv = \
