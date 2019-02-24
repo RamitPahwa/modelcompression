@@ -16,8 +16,8 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 	_, conv = list(model.features._modules.items())[layer_index]
 	bn_layer_index = layer_index +1
 	relu_layer_index =layer_index+2
-	bn = list(model.features._modules.items())[bn_layer_index]
-	relu = list(model.features._modules.items())[relu_layer_index]
+	_, bn = list(model.features._modules.items())[bn_layer_index]
+	_, relu = list(model.features._modules.items())[relu_layer_index]
 	next_conv = None
 	next_bn= None
 	offset = 1
