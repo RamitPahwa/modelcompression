@@ -15,7 +15,7 @@ import argparse
 from operator import itemgetter
 from heapq import nsmallest
 import time
-from test import *
+
 
 class ModifiedVGG16Model(torch.nn.Module):
 	def __init__(self):
@@ -384,7 +384,7 @@ if __name__ == '__main__':
 	if args.train:
 		fine_tuner.train(epoches = 25)
 		test_path = args.testpath 
-		test_loader = dataset.test_loader(testpath)
+		test_loader = dataset.test_loader(test_path)
 		start_time = time.time()
 		accuracy, num_params = fine_tuner.test_module(model, test_loader)
 		inference_time = time.time() - start_time
