@@ -11,6 +11,7 @@ def replace_layers(model, i, indexes, layers):
 	return model[i]
 
 def prune_vgg16_conv_layer(model, layer_index, filter_index):
+	print(layer_index)
 	_, conv = list(model.features._modules.items())[layer_index]
 	next_conv = None
 	offset = 1
