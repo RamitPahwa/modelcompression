@@ -71,7 +71,7 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 		new_conv.bias.data = torch.from_numpy(bias)
 	# batchnorm
 	print(conv.out_channels)
-	new_bn =torch.nn.BatchNorm2d(num_features =conv.out_channels - 1, eps=1e-05, momentum=0.1, affine=True)
+	new_bn =torch.nn.BatchNorm2d(num_features = conv.out_channels - 1, eps=1e-05, momentum=0.1, affine=True)
 	print(type(bn))
 	old_bweights = bn.weight.data.cpu().numpy()
 	new_bweights = new_bn.weight.data.cpu().numpy()
@@ -147,6 +147,7 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 		next_new_conv.bias.data = next_conv.bias.data
 		# next_new_conv.running_mean.data = next_conv.running_mean.data
 		# next_new_conv.running_var.data = next_conv.running_var.data
+	'''
 	if not next_bn is None:
 		next_new_bn = torch.nn.BatchNorm2d(num_features =conv.out_channels - 1, eps=1e-05, momentum=0.1, affine=True)
 
@@ -164,6 +165,7 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 		next_new_bn.bias.data = next_bn.bias.data
 		next_new_bn.running_mean = next_bn.running_mean
 		next_new_bn.running_mean= next_bn.running_mean
+	'''
 	if not next_bn is None:
 	 	features = torch.nn.Sequential(
 	            *(replace_layers(model.features, i, [layer_index, layer_index+boffset], \
