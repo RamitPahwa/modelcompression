@@ -317,7 +317,7 @@ class PrunningFineTuner_VGG16:
 				self.model = model.cuda()
 			else:
 				self.model = model
-
+			print(self.model)
 			message = str(100*float(self.total_num_filters()) / number_of_filters) + "%"
 			print ("Filters prunned", str(message))
 			self.test()
