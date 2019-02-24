@@ -74,8 +74,9 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 	# print(old_bweights.shape)
 	# print('nbnw')
 	# print(new_bweights.shape)
-	for i in range(0,filter_index):
-		new_bweights[i] = old_bweights[i]
+	# for i in range(0,filter_index):
+	# 	new_bweights[i] = old_bweights[i]
+	new_bweights[:filter_index] = old_bweights[:filter_index]
 	# new_bweights[filter_index :new_bweights.shape[0]] = old_bweights[filter_index + 1 : old_bweights.shape[0]]
 	for i in range(filter_index,new_bweights.shape[0]-1):
 		new_bweights[i] = old_bweights[i+1]
@@ -155,9 +156,9 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 		bold_weights = next_bn.weight.data.cpu().numpy()
 		bnew_weights = next_new_bn.weight.data.cpu().numpy()
 		
-		for i in range(0,filter_index):
-			bnew_weights[i] = bold_weights[i]
-			
+		# for i in range(0,filter_index):
+		# 	bnew_weights[i] = bold_weights[i]
+		bnew_weights[:filter_index] = bold_weights[i:filter]	
 		for i in range(filter_index,bnew_weights.shape[0]-1):
 			bnew_weights[i] = bold_weights[i+1]
 		print('here i am ')
