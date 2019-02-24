@@ -90,7 +90,7 @@ class ModifiedVGG11Model(torch.nn.Module):
 		self.classifier = nn.Sequential(
 		    nn.Linear(512, 100),
 		    nn.ReLU(inplace=True),
-		    nn.Linear(100, 3))
+		    nn.Linear(100, 10))
 
 	def forward(self, x):
 		x = self.features(x)

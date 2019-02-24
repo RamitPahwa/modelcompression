@@ -69,6 +69,7 @@ class CIFARSel(data.Dataset):
                     if self.train_labels[i] == name_class[name]:
                         self.train_data_selected.append(self.train_data[i])
                         self.train_labels_selected.append(self.train_labels[i])
+            '''
             self.labels_ids = set(self.train_labels_selected)  
 
             self.labels_id_dict = {}
@@ -78,7 +79,7 @@ class CIFARSel(data.Dataset):
                 counter = counter + 1
             for i in range(len(self.train_labels_selected)):
                 self.train_labels_selected[i] = self.labels_id_dict[self.train_labels_selected[i]]          
-                
+            '''  
             self.train_labels_selected = self.train_labels_selected[:int(1.0*len(self.train_labels_selected))]
             self.train_data_selected = self.train_data_selected[:int(1.0*len(self.train_data_selected))]
         else:
@@ -107,6 +108,7 @@ class CIFARSel(data.Dataset):
                     if self.test_labels[i] == name_class[name]:
                         self.test_data_selected.append(self.test_data[i])
                         self.test_labels_selected.append(self.test_labels[i])
+            '''
             self.labels_ids = set(self.test_labels_selected)
             self.labels_id_dict = {}
             counter = 0 
@@ -116,7 +118,7 @@ class CIFARSel(data.Dataset):
 
             for i in range(len(self.test_labels_selected)):
                 self.test_labels_selected[i]= self.labels_id_dict[self.test_labels_selected[i]]
-
+            '''
         
     def __getitem__(self, index):
         """
