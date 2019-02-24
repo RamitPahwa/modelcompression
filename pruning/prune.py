@@ -27,7 +27,7 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 		if isinstance(res[1], torch.nn.modules.BatchNorm2d):
 			next_bname, next_bn = res
 			break
-		bboffset = bboffset + 1
+		bboffset = boffset + 1
 	while layer_index + offset <  len(list(model.features._modules.items())):
 		res =  list(model.features._modules.items())[layer_index+offset]
 		if isinstance(res[1], torch.nn.modules.conv.Conv2d):
