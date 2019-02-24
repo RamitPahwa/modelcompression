@@ -318,6 +318,9 @@ class PrunningFineTuner_VGG16:
 			else:
 				self.model = model
 			print(self.model)
+			for param_tensor in self.model.state_dict():
+				print(param_tensor, "\t", self.model.state_dict()[param_tensor].size())
+
 			message = str(100*float(self.total_num_filters()) / number_of_filters) + "%"
 			print ("Filters prunned", str(message))
 			self.test()
