@@ -26,8 +26,9 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 		res =  list(model.features._modules.items())[layer_index+boffset]
 		if isinstance(res[1], torch.nn.modules.BatchNorm2d):
 			next_bname, next_bn = res
+			print(next_bname)
 			break
-		bboffset = boffset + 1
+		boffset = boffset + 1
 	while layer_index + offset <  len(list(model.features._modules.items())):
 		res =  list(model.features._modules.items())[layer_index+offset]
 		if isinstance(res[1], torch.nn.modules.conv.Conv2d):
@@ -43,6 +44,7 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 	new_bweights[filter_index :] = old_bweights[filter_index + 1 :]
 	
 	if torch.cuda.is_available():
+		print('hi2')
 		new_bn.weight.data = torch.from_numpy(new_bweights).cuda()
 	else:
 		new_bn.weight.data = torch.from_numpy(new_bweights)
@@ -54,6 +56,7 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 	bias[filter_index : ] = bn_bias_numpy[filter_index + 1 :]
 	
 	if torch.cuda.is_available():
+		print('hi')
 		new_bn.bias.data = torch.from_numpy(bias).cuda()
 	else:
 		new_bn.bias.data = torch.from_numpy(bias)	
