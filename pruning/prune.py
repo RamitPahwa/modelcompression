@@ -22,8 +22,8 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 	next_bn= None
 	offset = 1
 	boffset =1
-	while layer_index + boffset <  len(list(model.features._modules.items())):
-		res =  list(model.features._modules.items())[layer_index+boffset]
+	while bn_layer_index + boffset <  len(list(model.features._modules.items())):
+		res =  list(model.features._modules.items())[bn_layer_index+boffset]
 		if isinstance(res[1], torch.nn.modules.BatchNorm2d):
 			next_bname, next_bn = res
 			print(next_bname)
