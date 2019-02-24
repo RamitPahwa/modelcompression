@@ -70,9 +70,9 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 	running_mean[filter_index : ] = runavg_numpy[filter_index + 1 :]
 	
 	if torch.cuda.is_available():
-		new_bn.running_mean.data = torch.from_numpy(running_mean).cuda()
+		new_bn.running_mean= torch.from_numpy(running_mean).cuda()
 	else:
-		new_bn.running_mean.data = torch.from_numpy(running_mean)
+		new_bn.running_mean= torch.from_numpy(running_mean)
 	
 	runvar_numpy = bn.running_var.cpu().numpy()
 
@@ -81,9 +81,9 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 	running_var[filter_index : ] = runvar_numpy[filter_index + 1 :]
 	
 	if torch.cuda.is_available():
-		new_bn.running_var.data = torch.from_numpy(running_var).cuda()
+		new_bn.running_var= torch.from_numpy(running_var).cuda()
 	else:
-		new_bn.running_var.data = torch.from_numpy(running_var)
+		new_bn.running_var= torch.from_numpy(running_var)
 
 	new_conv = \
 		torch.nn.Conv2d(in_channels = conv.in_channels, \
