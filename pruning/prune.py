@@ -76,7 +76,7 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 	print(new_bweights.shape)
 	new_bweights[:filter_index] = old_bweights[:filter_index]
 	# new_bweights[filter_index :new_bweights.shape[0]] = old_bweights[filter_index + 1 : old_bweights.shape[0]]
-	for i in range(filter_index,new_bweights.shape[0]):
+	for i in range(filter_index,new_bweights.shape[0]-1):
 		new_bweights[i] = old_bweights[i+1]
 	
 	if torch.cuda.is_available():
@@ -145,7 +145,7 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 		next_new_conv.bias.data = next_conv.bias.data
 		# next_new_conv.running_mean.data = next_conv.running_mean.data
 		# next_new_conv.running_var.data = next_conv.running_var.data
-	'''
+	
 	if not next_bn is None:
 		next_new_bn = torch.nn.BatchNorm2d(num_features =conv.out_channels - 1, eps=1e-05, momentum=0.1, affine=True)
 
@@ -163,7 +163,7 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 		next_new_bn.bias.data = next_bn.bias.data
 		next_new_bn.running_mean = next_bn.running_mean
 		next_new_bn.running_mean= next_bn.running_mean
-	'''
+	
 	if not next_bn is None:
 	 	features = torch.nn.Sequential(
 	            *(replace_layers(model.features, i, [layer_index, layer_index+boffset], \
@@ -172,6 +172,7 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 	 	del bn
 
 	 	model.features = features
+
 	if not next_conv is None:
 	 	features = torch.nn.Sequential(
 	            *(replace_layers(model.features, i, [layer_index, layer_index+offset], \
@@ -195,7 +196,7 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 			layer_index = layer_index  + 1
 
 		if old_linear_layer is None:
-			raise BaseException("No linear laye found in classifier")
+			raise BaseException("No linear layer found in classifier")
 		params_per_input_channel = old_linear_layer.in_features/conv.out_channels
 		print(old_linear_layer.out_features)
 		new_linear_layer = \
