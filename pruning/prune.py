@@ -149,16 +149,18 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 	if not next_bn is None:
 		next_new_bn = torch.nn.BatchNorm2d(num_features =next_conv.out_channels - 1, eps=1e-05, momentum=0.1, affine=True)
 
-		old_weights = next_bn.weight.data.cpu().numpy()
-		new_weights = next_new_bn.weight.data.cpu().numpy()
+		bold_weights = next_bn.weight.data.cpu().numpy()
+		bnew_weights = next_new_bn.weight.data.cpu().numpy()
 
-		new_weights[: filter_index] = old_weights[ : filter_index]
-		new_weights[filter_index :] = old_weights[filter_index + 1 :]
-		
+		bnew_weights[: filter_index] = old_weights[ : filter_index]
+		for i in range(filter_index,bnew_weights.shape[0]-1):
+			bnew_weights[i] = bold_weights[i+1]
+		print('here i am ')
+		print(bnew_weights_weight.shape)
 		if torch.cuda.is_available():
-			next_new_bn.weight.data = torch.from_numpy(new_weights).cuda()
+			next_new_bn.weight.data = torch.from_numpy(bnew_weights).cuda()
 		else:
-			next_new_bn.weight.data = torch.from_numpy(new_weights)
+			next_new_bn.weight.data = torch.from_numpy(bnew_weights)
 
 		next_new_bn.bias.data = next_bn.bias.data
 		next_new_bn.running_mean = next_bn.running_mean
