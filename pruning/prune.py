@@ -158,7 +158,7 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 		
 		# for i in range(0,filter_index):
 		# 	bnew_weights[i] = bold_weights[i]
-		bnew_weights[:filter_index] = bold_weights[i:filter]	
+		bnew_weights[:filter_index] = bold_weights[:filter_index]	
 		for i in range(filter_index,bnew_weights.shape[0]-1):
 			bnew_weights[i] = bold_weights[i+1]
 		print('here i am ')
