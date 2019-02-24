@@ -195,6 +195,25 @@ class PrunningFineTuner_VGG16:
 		self.criterion = torch.nn.CrossEntropyLoss()
 		self.prunner = FilterPrunner(self.model) 
 		self.model.train()
+	def numParams(model):
+		return sum([len(w.view(-1)) for w in model.parameters()])
+
+	def test_module(model, test_loader):
+		model.eval()
+		correct = 0
+		total = 0
+		for i, (batch, label) in enumerate(test_loader):
+			if torch.cuda.is_available():
+				batch = batch.cuda()
+			output = model(Variable(batch))
+			pred = output.data.max(1)[1]
+			correct = correct + pred.cpu().eq(label).sum()
+			total = total + label.size(0)
+		print ("Accuracy :",float(correct) / total)
+		val_accuracy = float(correct) / total
+		num_params = numParams(model)
+		# now save the model if it has better accuracy than the best model seen so forward
+		return val_accuracy, num_params
 
 	def test(self):
 		self.model.eval()
@@ -317,6 +336,7 @@ def get_args():
 	parser.add_argument("--prune", dest="prune", action="store_true")
 	parser.add_argument("--train_path", type = str, default = "train")
 	parser.add_argument("--test_path", type = str, default = "test")
+	parser.add_argument("--testpath", type = str, default = "testpath")
 	parser.add_argument("--datasetname", type=str, default="CIFAR10")
 	parser.add_argument("--subset", type=str, default="vehicles")
 	parser.add_argument("--arch", type=str, default="VGG16")
@@ -363,10 +383,10 @@ if __name__ == '__main__':
 
 	if args.train:
 		fine_tuner.train(epoches = 25)
-		test_path = args.test_path 
-		test_loader = dataset.test_loader(test_path)
+		test_path = args.testpath 
+		test_loader = dataset.test_loader(testpath)
 		start_time = time.time()
-		accuracy, num_params = test_module(model, test_loader)
+		accuracy, num_params = fine_tuner.test_module(model, test_loader)
 		inference_time = time.time() - start_time
 		print('Accuracy:'+str(accuracy))
 		print('num_params:'+str(num_params))
