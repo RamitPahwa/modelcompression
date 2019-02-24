@@ -224,5 +224,5 @@ if __name__ == '__main__':
 	model.train()
 
 	t0 = time.time()
-	model = prune_vgg16_conv_layer(model, 1, 10)
+	model = prune_vgg16_conv_layer(model, 0, 10)
 	print ("The prunning took", time.time() - t0)
