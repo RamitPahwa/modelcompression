@@ -147,7 +147,9 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 		# next_new_conv.running_var.data = next_conv.running_var.data
 	
 	if not next_bn is None:
-		next_new_bn = torch.nn.BatchNorm2d(num_features =next_conv.out_channels - 1, eps=1e-05, momentum=0.1, affine=True)
+		print('next_conv.out_channels')
+		print(next_conv.out_channels)
+		next_new_bn = torch.nn.BatchNorm2d(num_features = next_conv.out_channels - 1, eps=1e-05, momentum=0.1, affine=True)
 
 		bold_weights = next_bn.weight.data.cpu().numpy()
 		bnew_weights = next_new_bn.weight.data.cpu().numpy()
