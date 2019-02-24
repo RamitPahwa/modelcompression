@@ -21,13 +21,13 @@ class ModifiedResNet18Model(torch.nn.Module):
 		super(ModifiedResNet18Model, self).__init__()
 
 		# model = models.resnet18(pretrained=True)
-		'''
+		
 		# for CIFAR-10
 		model = torch.load('resnet18cifar.net')
 		'''
 		# for CIFAR-100
 		model = torch.load('resnet18_cifar100.net')
-
+		'''
 		#squeezenet1_1
 		#model = torch.load('/home/yq/work/face_class/id_rec_resnet_copy/id_rec_resnet/logs/resnet18-1/model.bin')
 		modules = list(model.children())[:-1]      # delete the last fc layer.

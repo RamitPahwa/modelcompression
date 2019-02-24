@@ -93,7 +93,7 @@ class ModifiedVGG11Model(torch.nn.Module):
 def numParams(model):
         return sum([len(w.view(-1)) for w in model.parameters()])
 
-def test(model, test_loader):
+def test_module(model, test_loader):
     model.eval()
     correct = 0
     total = 0
@@ -143,7 +143,8 @@ if __name__ == '__main__':
     test_path = args.testpath 
     test_loader = dataset.test_loader(test_path)
     start_time = time.time()
-    accuracy, num_params = test(model, test_loader)
+	model = models.vgg11(pretrained=True)
+    accuracy, num_params = test_module(model, test_loader)
     inference_time = time.time() - start_time
     print('Accuracy:'+str(accuracy))
     print('num_params:'+str(num_params))
