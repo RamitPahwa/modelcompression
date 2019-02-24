@@ -154,7 +154,7 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 		bold_weights = next_bn.weight.data.cpu().numpy()
 		bnew_weights = next_new_bn.weight.data.cpu().numpy()
 
-		bnew_weights[: filter_index] = old_weights[ : filter_index]
+		bnew_weights[: filter_index] = bold_weights[ : filter_index]
 		for i in range(filter_index,bnew_weights.shape[0]-1):
 			bnew_weights[i] = bold_weights[i+1]
 		print('here i am ')
