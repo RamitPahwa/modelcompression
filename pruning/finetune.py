@@ -383,7 +383,7 @@ if __name__ == '__main__':
 		fine_tuner = PrunningFineTuner_VGG16(args.train_path, args.test_path, args.arch, args.datasetname, args.subset, model)
 
 	if args.train:
-		fine_tuner.train(epoches = 10)
+		fine_tuner.train(epoches = 1)
 		test_path = args.testpath 
 		test_loader = dataset.test_loader(test_path)
 		start_time = time.time()
