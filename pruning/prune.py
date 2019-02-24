@@ -163,6 +163,14 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 		next_new_conv.bias.data = next_conv.bias.data
 		# next_new_conv.running_mean.data = next_conv.running_mean.data
 		# next_new_conv.running_var.data = next_conv.running_var.data
+	if not next_bn is None:
+	 	features = torch.nn.Sequential(
+	            *(replace_layers(model.features, i, [layer_index, layer_index+boffset], \
+	            	[new_bn, next_bn]) for i, _ in enumerate(model.features)))
+	 	del model.features
+	 	del bn
+
+	 	model.features = features
 
 	if not next_conv is None:
 	 	features = torch.nn.Sequential(
