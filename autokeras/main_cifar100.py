@@ -23,7 +23,7 @@ print(meta)
 name_class_cifar100 = {}
 for i,name in enumerate(meta['fine_label_names']):
     name_class_cifar100[name]=i
-    
+
 # select the time you want to run the search for in hrs 
 time_array =[1,2,3,4,5,6,7,8,9,10]
 # change index to change time for NAS
@@ -40,8 +40,8 @@ for i in range(len(X_train)):
 X_train_selected = np.array(X_train_selected)
 y_train_selected = np.array(y_train_selected)
 y_train_selected_ravel = y_train_selected.ravel()
-print(y_train_selected_ravel[0])
-print(y_train_selected[0][0])
+# print(y_train_selected_ravel[0])
+# print(y_train_selected[0][0])
 labels_ids = set(y_train_selected_ravel)  
 
 labels_id_dict = {}
@@ -86,11 +86,12 @@ print(X_train_selected.shape)
 print(y_train_selected.shape)
 print(X_test_selected.shape)
 print(y_test_selected.shape)
+
+
 clf = ImageClassifier(verbose=True, augment=True, searcher_args={'trainer_args':{'max_iter_num':7}})
 clf.fit(X_train_selected, y_train_selected, time_limit=(1*60*60))
 
 clf.final_fit(X_train_selected, y_train_selected, X_test_selected, y_test_selected, retrain=False)
 
-
 y_prediction = clf.predict(X_test)
-accuracy_score(y_true=y_test, y_pred=y_prediction)
+accuracy_score(y_true=y_test_selected, y_pred=y_prediction)
