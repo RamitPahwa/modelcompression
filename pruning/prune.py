@@ -13,16 +13,72 @@ def replace_layers(model, i, indexes, layers):
 def prune_vgg16_conv_layer(model, layer_index, filter_index):
 	print(layer_index)
 	_, conv = list(model.features._modules.items())[layer_index]
+	bn_layer_index = layer_index +1
+	relu_layer_index =layer_index+2
+	bn = list(model.features._modules.items())[bn_layer_index]
+	relu = list(model.features._modules.items())[relu_layer_index]
 	next_conv = None
+	next_bn= None
 	offset = 1
-
+	boffset =1
+	while layer_index + boffset <  len(list(model.features._modules.items())):
+		res =  list(model.features._modules.items())[layer_index+boffset]
+		if isinstance(res[1], torch.nn.modules.BatchNorm2d):
+			next_bname, next_bn = res
+			break
+		bboffset = bboffset + 1
 	while layer_index + offset <  len(list(model.features._modules.items())):
 		res =  list(model.features._modules.items())[layer_index+offset]
 		if isinstance(res[1], torch.nn.modules.conv.Conv2d):
 			next_name, next_conv = res
 			break
 		offset = offset + 1
+	# batchnorm
+	new_bn =torch.nn.BatchNorm2d(num_features =conv.out_channels - 1, eps=1e-05, momentum=0.1, affine=True)
+	old_bweights = bn.weight.data.cpu().numpy()
+	new_bweights = new_bn.weight.data.cpu().numpy()
+
+	new_bweights[:filter_index] = old_bweights[:filter_index]
+	new_bweights[filter_index :] = old_bweights[filter_index + 1 :]
 	
+	if torch.cuda.is_available():
+		new_bn.weight.data = torch.from_numpy(new_bweights).cuda()
+	else:
+		new_bn.weight.data = torch.from_numpy(new_bweights)
+
+	bn_bias_numpy = bn.bias.data.cpu().numpy()
+
+	bias = np.zeros(shape = (bn_bias_numpy.shape[0] - 1), dtype = np.float32)
+	bias[:filter_index] = bn_bias_numpy[:filter_index]
+	bias[filter_index : ] = bn_bias_numpy[filter_index + 1 :]
+	
+	if torch.cuda.is_available():
+		new_bn.bias.data = torch.from_numpy(bias).cuda()
+	else:
+		new_bn.bias.data = torch.from_numpy(bias)	
+
+	runavg_numpy = bn.running_mean.data.cpu().numpy()
+
+	running_mean = np.zeros(shape = (runavg_numpy.shape[0] - 1), dtype = np.float32)
+	running_mean[:filter_index] = runavg_numpy[:filter_index]
+	running_mean[filter_index : ] = runavg_numpy[filter_index + 1 :]
+	
+	if torch.cuda.is_available():
+		new_bn.running_mean.data = torch.from_numpy(running_mean).cuda()
+	else:
+		new_bn.running_mean.data = torch.from_numpy(running_mean)
+	
+	runvar_numpy = bn.running_var.data.cpu().numpy()
+
+	running_var = np.zeros(shape = (runvar_numpy.shape[0] - 1), dtype = np.float32)
+	running_var[:filter_index] = runvar_numpy[:filter_index]
+	running_var[filter_index : ] = runvar_numpy[filter_index + 1 :]
+	
+	if torch.cuda.is_available():
+		new_bn.running_var.data = torch.from_numpy(running_var).cuda()
+	else:
+		new_bn.running_var.data = torch.from_numpy(running_var)
+
 	new_conv = \
 		torch.nn.Conv2d(in_channels = conv.in_channels, \
 			out_channels = conv.out_channels - 1,
@@ -54,29 +110,24 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 		new_conv.bias.data = torch.from_numpy(bias).cuda()
 	else:
 		new_conv.bias.data = torch.from_numpy(bias)
-
-	runavg_numpy = conv.running_mean.data.cpu().numpy()
-
-	running_mean = np.zeros(shape = (runavg_numpy.shape[0] - 1), dtype = np.float32)
-	running_mean[:filter_index] = runavg_numpy[:filter_index]
-	running_mean[filter_index : ] = runavg_numpy[filter_index + 1 :]
 	
-	if torch.cuda.is_available():
-		new_conv.running_mean.data = torch.from_numpy(running_mean).cuda()
-	else:
-		new_conv.running_mean.data = torch.from_numpy(running_mean)
-	
-	runvar_numpy = conv.running_var.data.cpu().numpy()
+	if not next_bn is None:
+		next_new_bn = torch.nn.BatchNorm2d(num_features =conv.out_channels - 1, eps=1e-05, momentum=0.1, affine=True)
 
-	running_var = np.zeros(shape = (runvar_numpy.shape[0] - 1), dtype = np.float32)
-	running_var[:filter_index] = runvar_numpy[:filter_index]
-	running_var[filter_index : ] = runvar_numpy[filter_index + 1 :]
-	
-	if torch.cuda.is_available():
-		new_conv.running_var.data = torch.from_numpy(running_var).cuda()
-	else:
-		new_conv.running_var.data = torch.from_numpy(running_var)
+		old_weights = next_bn.weight.data.cpu().numpy()
+		new_weights = next_new_bn.weight.data.cpu().numpy()
 
+		new_weights[: filter_index] = old_weights[ : filter_index]
+		new_weights[filter_index :] = old_weights[filter_index + 1 :]
+		
+		if torch.cuda.is_available():
+			next_new_bn.weight.data = torch.from_numpy(new_weights).cuda()
+		else:
+			next_new_bn.weight.data = torch.from_numpy(new_weights)
+
+		next_new_bn.bias.data = next_bn.bias.data
+		next_new_bn.running_mean.data = next_bn.running_mean.data
+		next_new_bn.running_mean.data = next_bn.running_mean.data
 
 	if not next_conv is None:
 		next_new_conv = \
@@ -101,8 +152,8 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 			next_new_conv.weight.data = torch.from_numpy(new_weights)
 
 		next_new_conv.bias.data = next_conv.bias.data
-		next_new_conv.running_mean.data = next_conv.running_mean.data
-		next_new_conv.running_var.data = next_conv.running_var.data
+		# next_new_conv.running_mean.data = next_conv.running_mean.data
+		# next_new_conv.running_var.data = next_conv.running_var.data
 
 	if not next_conv is None:
 	 	features = torch.nn.Sequential(
