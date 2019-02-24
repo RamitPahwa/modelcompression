@@ -58,17 +58,15 @@ class ModifiedVGG19Model(torch.nn.Module):
 		model = torch.load('cifar_vgg19.net')
 		
 		self.features = model.features
-		print('hi')
+		print('hivgg19')
 
 		for param in self.features.parameters():
 			param.requires_grad = False
 
 		self.classifier = nn.Sequential(
-		    nn.Dropout(),
-		    nn.Linear(512, 100),
+		    nn.Linear(512, 256),
 		    nn.ReLU(inplace=True),
-			nn.Dropout(),
-		    nn.Linear(100, 3))
+		    nn.Linear(256, 10))
 
 	def forward(self, x):
 		x = self.features(x)
