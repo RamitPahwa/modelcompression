@@ -41,7 +41,9 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 	new_bn =torch.nn.BatchNorm2d(num_features =conv.out_channels - 1, eps=1e-05, momentum=0.1, affine=True)
 	old_bweights = bn.weight.data.cpu().numpy()
 	new_bweights = new_bn.weight.data.cpu().numpy()
-
+	print('hola')
+	print(old_bweights.shape)
+	print(new_bweights.shape)
 	new_bweights[:filter_index] = old_bweights[:filter_index]
 	new_bweights[filter_index :] = old_bweights[filter_index + 1 :]
 	
