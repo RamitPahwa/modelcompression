@@ -292,7 +292,7 @@ class PrunningFineTuner_VGG16:
 			param.requires_grad = True
 
 		number_of_filters = self.total_num_filters()
-		num_filters_to_prune_per_iteration = 256
+		num_filters_to_prune_per_iteration = 192
 		iterations = int(float(number_of_filters) / num_filters_to_prune_per_iteration)
 
 		iterations = int(iterations * 2.0 / 3.0)
