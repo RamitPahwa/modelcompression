@@ -14,16 +14,17 @@ def replace_layers(model, i, indexes, layers):
 def prune_vgg16_conv_layer(model, layer_index, filter_index):
 	print(layer_index)
 	_, conv = list(model.features._modules.items())[layer_index]
-	bn_layer_index = layer_index +1
+	bn_layer_index = layer_index + 1
 	relu_layer_index =layer_index+2
 	_, bn = list(model.features._modules.items())[bn_layer_index]
 	_, relu = list(model.features._modules.items())[relu_layer_index]
 	next_conv = None
 	next_bn= None
 	offset = 1
-	boffset =1
+	boffset = 1
 	while bn_layer_index + boffset <  len(list(model.features._modules.items())):
 		res =  list(model.features._modules.items())[bn_layer_index+boffset]
+		print(boffset)
 		if isinstance(res[1], torch.nn.modules.BatchNorm2d):
 			next_bname, next_bn = res
 			print(next_bname)
