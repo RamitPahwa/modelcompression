@@ -5,6 +5,7 @@ import cv2
 import sys
 import numpy as np
 import time
+import pdb
  
 def replace_layers(model, i, indexes, layers):
 	if i in indexes:
@@ -158,6 +159,7 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 		
 		for i in range(0,filter_index):
 			bnew_weights[i] = bold_weights[i]
+			pdb.pdb.set_trace()
 		# bnew_weights[:filter_index] = bold_weights[:filter_index]	
 		for i in range(filter_index,bnew_weights.shape[0]-1):
 			bnew_weights[i] = bold_weights[i+1]
