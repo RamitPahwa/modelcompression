@@ -33,9 +33,11 @@ def prune_vgg16_conv_layer(model, layer_index, filter_index):
 		res =  list(model.features._modules.items())[layer_index+offset]
 		if isinstance(res[1], torch.nn.modules.conv.Conv2d):
 			next_name, next_conv = res
+			print(next_name)
 			break
 		offset = offset + 1
 	# batchnorm
+	print(conv.out_channels)
 	new_bn =torch.nn.BatchNorm2d(num_features =conv.out_channels - 1, eps=1e-05, momentum=0.1, affine=True)
 	old_bweights = bn.weight.data.cpu().numpy()
 	new_bweights = new_bn.weight.data.cpu().numpy()
