@@ -50,11 +50,12 @@ class ModifiedVGG19Model(torch.nn.Module):
 
 		# model = models.vgg19(pretrained=True)
 		# for Cifar-100
+		'''
 		model = torch.load('vgg19cifar100.net')
 		'''
 		# for Cifar-10
 		model = torch.load('cifar_vgg19.net')
-		'''
+		
 		self.features = model.features
 		print('hi')
 
@@ -87,10 +88,8 @@ class ModifiedVGG11Model(torch.nn.Module):
 			param.requires_grad = False
 		# print(self.features.shape)
 		self.classifier = nn.Sequential(
-		    nn.Dropout(),
 		    nn.Linear(512, 100),
 		    nn.ReLU(inplace=True),
-			nn.Dropout(),
 		    nn.Linear(100, 3))
 
 	def forward(self, x):
