@@ -9,13 +9,14 @@ import argparse
 import json
 import model.net as net
 from utils import *
+from datasets import dataset
 
 json_path='./params.json'
 parser = argparse.ArgumentParser(description='N2N: Network to Network Compression using Policy Gradient Reinforcement Learning')
 
-parser.add_argument('dataset', type=str, choices=['mnist', 'cifar10', 'cifar10_old', 'cifar100', 'svhn', 'caltech256'],
+parser.add_argument('--dataset', type=str, choices=['mnist', 'cifar10', 'cifar10_old', 'cifar100', 'svhn', 'caltech256'],
                     help='Name of dataset')
-parser.add_argument('teacherModel', type=str,
+parser.add_argument('--teacherModel', type=str,
                     help='Path to teacher model')
 parser.add_argument('--model', type=str, required=False,
                     help='Path to base model architecture if different from teacherModel')
@@ -74,19 +75,19 @@ else:
 
 # ----DATASETS----
 if args.dataset == 'mnist':
-    import datasets.mnist as dataset
+    import datasets.mnist as dataseta
 elif args.dataset == 'cifar10':
-    import datasets.cifar10 as dataset
+    import datasets.cifar10 as dataseta
 elif args.dataset == 'cifar10_old':
-    import datasets.cifar10_old as dataset
+    import datasets.cifar10_old as dataseta
 elif args.dataset == 'cifar100':
-    import datasets.cifar100 as dataset
+    import datasets.cifar100 as dataseta
 elif args.dataset == 'svhn':
-    import datasets.svhn as dataset
+    import datasets.svhn as dataseta
 elif args.dataset == 'caltech256':
-    import datasets.caltech256 as dataset
+    import datasets.caltech256 as dataseta
 elif args.dataset == 'imagenet':
-    import datasets.imagenet as dataset
+    import datasets.imagenet as dataseta
 else:
     print('Dataset not found: ' + args.dataset)
     quit()
@@ -94,7 +95,7 @@ else:
 print('Using %s as dataset' % args.dataset)
 dataset.cuda = args.cuda
 # print(dataset.test_loader.dataset[0])
-datasetInputTensor = dataset.test_loader.dataset[0][0].unsqueeze(0)
+datasetInputTensor = dataseta.test_loader.dataset[0][0].unsqueeze(0)
 print(datasetInputTensor.size())
 
 print("loading model")

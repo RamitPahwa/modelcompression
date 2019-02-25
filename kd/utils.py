@@ -7,7 +7,7 @@ import os
 from Model import Model
 from model.resnet import *
 from model.lenet import *
-
+from model.vgg import *
 def resizeLayer(layer, in_channels, out_channels, kernel_size=1, stride=1, padding=1, dilation=1):
     '''
     Resize the layer, depending upon which layer is removed Options are Conv2d, MaxPool2d, Linear, Relu or BatchNorm2d
@@ -126,7 +126,7 @@ def trainTeacherStudent(teacher, student, dataset, epochs=5, lr=0.0005):
     optimizer = optim.SGD(student.parameters(), lr=lr, momentum=0.9, nesterov=True, weight_decay=5e-4)
     student.train()
     for i in range(1, epochs+1):
-        for b_idx, (data, targets) in enumerate(dataset.train_loader):
+        for b_idx, (data, targets) in enumerate(dataset.loader('../data/')):
             data = data.cuda()
             data = Variable(data)
             optimizer.zero_grad()
@@ -234,7 +234,7 @@ def trainTeacherStudentParallel(teacher, students, dataset, epochs=5, lr=0.0005)
     MSEloss = nn.MSELoss().cuda()
     optimizers = [optim.Adam(student.parameters(), lr=lr, weight_decay=5e-4) for student in students]
     for i in range(1, epochs+1):
-        for b_idx, (data, targets) in enumerate(dataset.train_loader):
+        for b_idx, (data, targets) in enumerate(dataset.loader('../data/')):
             data = data.cuda()
             teacherOutput = teacher(Variable(data)).detach()
             for j in range(len(students)):
