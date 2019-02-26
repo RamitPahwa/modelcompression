@@ -1,0 +1,88 @@
+Title: Data Driven Compression of CNNs for On-Device Deployment
+
+[Done] Abstract:
+    3 questions -
+    a) control trade-off between accuracy, memory footprint, speed (AMS trade-off) of compressed model
+            doing this by hand designing architecture is very non-trivial
+    b) improve AMS trade-off if only few classes need to be inferred
+    c) scale to 100s of executions by compression policy transfer
+    [Todo] experiments of on-device claims
+
+Introduction:
+* SOTA CNNs are large and deep. Need more memory footprint and slower in inference (price of high accuracy). Problematic for on-device deployments.
+* ?Personalization => high accuracy on user dataset
+    change to autonomous car example - don't have to label all classes accurately, even if trained on ImageNet
+* Compression is one solution
+    ?Depth reduction requires hand design of networks
+    [Todo] move to related work
+    * Compression takes time! personalized compression at scale is difficult!
+* We propose an RL based compression algorithm (building on N2N [Ashok et. al.] paper). Contributions -
+    a) design reward functions for accuracy, memory footprint, speed (speed is new addition)
+        [Todo] demo that different points on the AMS trade-off curve are achievable
+    b) experimentally demo subset specific compression gives better AMS trade-off
+        Also results in different compressed models!
+    ??Introduce utilizing original model outputs and targets
+        [This seems to be present in N2N]
+    c) experimentally demo learned policy is transferable to other data subsets.
+        Amortizes cost of personalized compression (to some extent).
+        [Todo] Distinguish from N2N [Ashok et. al.] paper's policy transfer.
+
+[Done] Related Work:
+a) Pruning -
+    very little control over the compression process
+b) Knowledge Distillation
+    student model architecture needs to be hand designed
+c) Architecture Search
+    search within sub architectures of teacher network
+    control of KPIs via reward functions
+    Include distinction from N2N [Ashok et. al.] paper
+
+[Todo] Compression Algorithm:
+
+
+Experiments:
+? All datasets, algorithm implementations, experiment configurations and results are available at [point to anon link]
+a) Datasets -
+    * Fullsets - CIFAR-10, CIFAR-100
+    * Subsets - created by combining few classes into a superclass
+                we experiment with Animals and Vehicles superclasses (designate unique names for data subsets)
+b) Methods Under Study -
+    * mention paper and source code citation and hyperparameters for all methods here (if the hyperparameters don't change across experiments)
+    * designate unique names for each method (also distinguish between different parameter settings only within same experiment)
+    1. N2N
+    2. Pruning
+    3. KD
+        * mention how student architecture is decided (if different in each experiment, mention in the respective experiment description)
+    4. AutoKeras
+    5. DDC (our method)
+        Note: reward function thresholds are hyperparameters
+        a. Reward only -
+            * Include Reward function plots
+        b. Reward + Loss -
+            * mention what is different from "Reward only"
+c) Details of Experiments -
+    * We compare on accuracy, inference time, compression/memory and execution time
+    * How inference time and memory footprints are measured
+    [Todo] Boldface the winning numbers in the tables
+    [Todo] Tables are missing execution time
+    [Todo] Tables should be consistent on whether metrics are along rows or columns
+    * Describe EACH experiment, including
+        * Which input model(s) on which data (sub)set
+        * How train, validate, test split is done
+            + how/what accuracy is measured
+        * Express results in the form of table(s). Not as bar charts, since the numbers are close.
+        * What is noteworthy in the results?
+        1. Compressed Model Search -
+            * All methods will be used for comparison
+        2. Data Subset based Compression -
+            * For DDC method, contrast AMS trade-off numbers w.r.t. first experiment where no subsets are used. Take care to calculate inference time and accuracy on the subset(s) only even in the first experiment output for this comparison to be meaningful.
+                + Do this comparison for multiple (all?) methods only if it can be meaningfully done
+        3. Compression with Policy Transfer -
+            * For DDC method, contrast AMS trade-off + Execution time w.r.t. second experiment.
+                + Could policy learned by N2N also be transferred in the same way? If yes, get the results of that experiment and run the same comparison w.r.t. the second experiment.
+            * Include compression vs iterations & accuracy vs iterations plots w.r.t. compression from scratch
+
+[Todo] Conclusions:
+* Did not do -
+    a. test with additive reward structure in RL
+    b. on-device experiments/measurements
