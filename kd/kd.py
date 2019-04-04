@@ -8,6 +8,7 @@ from copy import deepcopy
 import argparse
 import json
 import model.net as net
+import model.net2 as dnet
 from utils import *
 from datasets import dataset
 
@@ -114,12 +115,13 @@ params = Params(json_path)
 
     # use GPU if available
 params.cuda = torch.cuda.is_available()
-model = net.Net(params).cuda() if params.cuda else net.Net(params)
+# model = net.Net(params).cuda() if params.cuda else net.Net(params)
+dmodel = dnet.NET2('net').cuda() if params.cuda else dnet.NET2('net')
 
-accs, run_time = trainTeacherStudent(teacherModel, model, dataset, epochs=20)
-student_size=numParams(model)
+accs, run_time = trainTeacherStudent(teacherModel, dmodel, dataset, epochs=20)
+student_size=numParams(dmodel)
 parent_size=numParams(teacherModel)
-model_compression[i] = 1.0 - (float(numParams(newModels[i]))/architecture.parentSize)
+
 compression=1.0-(float(student_size)/float(parent_size))
 print("Accuracy ",accs)
 print("inference ",run_time)

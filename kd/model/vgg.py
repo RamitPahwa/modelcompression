@@ -2,9 +2,11 @@
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
+from utils import *
 
 
 cfg = {
+    'net' : [64, 'M', 128, 'M', 256, 256, 'M', 512, 'M', 512, 'M'],
     'VGG11': [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
     'VGG13': [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
     'VGG16': [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
@@ -38,6 +40,7 @@ class VGG(nn.Module):
         layers += [nn.AvgPool2d(kernel_size=1, stride=1)]
         return nn.Sequential(*layers)
 
-# net = VGG('VGG11')
+# net = VGG('net')
+# print(numParams(net))
 # x = torch.randn(2,3,32,32)
 # print(net(Variable(x)).size())

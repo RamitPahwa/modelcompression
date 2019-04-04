@@ -88,6 +88,7 @@ test_loader = torch.utils.data.DataLoader(datasets.ImageFolder(root='./cifar10/t
                        #transforms.Normalize((0.491399689874, 0.482158419622, 0.446530924224), (0.247032237587, 0.243485133253, 0.261587846975))
                    ])),batch_size=batch_size,shuffle=False)
 '''
+'''
 name_class = {'airplane':0,
                     'automobile':1,
                     'bird':2,
@@ -118,6 +119,7 @@ test_loader =torch.utils.data.DataLoader(CIFARSel(root='./',names=names,name_cla
 
 print(len(train_loader.dataset))
 print(len(test_loader.dataset))
+'''
 # using the 55 epoch learning rule here
 def paramsforepoch(epoch):
     p = dict()
