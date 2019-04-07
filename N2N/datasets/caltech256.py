@@ -27,7 +27,7 @@ transforms.Normalize(mean,std)
 ])
 
 class Caltech256(data.Dataset):
-    def __init__(self, split='train', path='./caltech256/256_ObjectCategories'):
+    def __init__(self, split='train', path='/home/anubhava/ArchSearch/data/caltech256/256_ObjectCategories'):
         super(Caltech256, self).__init__()
         self.path = path
         self.split = split
@@ -68,8 +68,8 @@ class Caltech256(data.Dataset):
         return len(self.filepaths)
 
 kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
-train_loader = torch.utils.data.DataLoader(Caltech256(split='train'), batch_size=batch_size, shuffle=True)
-test_loader = torch.utils.data.DataLoader(Caltech256(split='test'), batch_size=batch_size) 
+train_loader = torch.utils.data.DataLoader(Caltech256(split='train'), batch_size=batch_size, shuffle=True, **kwargs)
+test_loader = torch.utils.data.DataLoader(Caltech256(split='test'), batch_size=batch_size, **kwargs) 
 optimizer = None
 ceLoss = nn.CrossEntropyLoss()
 lr = 0.01
@@ -115,7 +115,6 @@ def train(epoch):
 best_accuracy = 0.0
 
 def test():
-    print("Inside test")
     net.eval()
     global best_accuracy
     correct = 0

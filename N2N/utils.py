@@ -9,12 +9,6 @@ from model.resnet import *
 from model.lenet import *
 
 def resizeLayer(layer, in_channels, out_channels, kernel_size=1, stride=1, padding=1, dilation=1):
-    '''
-    Resize the layer, depending upon which layer is removed Options are Conv2d, MaxPool2d, Linear, Relu or BatchNorm2d
-    sd: load_state_dict
-    resize using the resize function defined in pytorch
-    NOTE: Resize both weight and biad
-    '''
     if dilation == 1 and hasattr(layer, 'dilation'):
         dilation = layer.dilation
     if layer.__class__.__name__ is 'Conv2d':
@@ -43,7 +37,7 @@ def resizeLayer(layer, in_channels, out_channels, kernel_size=1, stride=1, paddi
     if layer.__class__.__name__ is 'BatchNorm2d':
         sd = layer.state_dict()
         for k in sd:
-           sd[k].resize_(in_channels)
+            sd[k].resize_(in_channels)
         layer = nn.BatchNorm2d(in_channels, eps=layer.eps, momentum=layer.momentum, affine=layer.affine)
         layer.load_state_dict(sd)
     return layer
@@ -54,7 +48,6 @@ def determine_fc_size(inp, model):
     return output.view(-1).size()[0]
 
 def output_results(resultsFile, accsPerModel, paramsPerModel, rewardsPerModel):
-    '''Outpur printing module'''
     resultsString = ''
     s = '-- Models ranked by accuracy --'
     print(s)
@@ -142,11 +135,9 @@ def trainTeacherStudent(teacher, student, dataset, epochs=5, lr=0.0005):
         print('Train Epoch: {} \tLoss: {:.6f}'.format(i, loss.data[0]))
     student.add_module('LogSoftmax', nn.LogSoftmax())
     dataset.net = student
-    s2 = time.time()
     acc = dataset.test()
-    run_time = time.time() - s2
     print('Time elapsed: {}'.format(time.time()-startTime))
-    return acc ,run_time
+    return acc 
 
 import torch.nn.functional as F
 def trainTeacherStudentRand(teacher, student, dataset, epochs=50, lr=0.0001):
@@ -178,12 +169,10 @@ def trainTeacherStudentRand(teacher, student, dataset, epochs=50, lr=0.0001):
         print('Train Epoch: {} \tLoss: {:.6f}'.format(i, loss.data[0]))
     student.add_module('LogSoftmax', nn.LogSoftmax())
     dataset.net = student
-    s2 = time.time()
     acc = dataset.test()
-    run_time = time.time() - s2
-    print('Time elapsed: {}'.format(run_time))
-    return acc, run_time
-    
+    print('Time elapsed: {}'.format(time.time()-startTime))
+    return acc
+
 def trainTeacherStudentNew(teacher, student, dataset, epochs=5, lr=0.0005, T=3.0, lambd=0.3):
     startTime = time.time()
     student = student.cuda()
@@ -215,15 +204,14 @@ def trainTeacherStudentNew(teacher, student, dataset, epochs=5, lr=0.0005, T=3.0
         print('Train Epoch: {} \tLoss: {:.6f}'.format(i, loss.data[0]))
     student.add_module('LogSoftmax', nn.LogSoftmax())
     dataset.net = student
-    s2 = time.time()
     acc = dataset.test()
-    run_time = time.time() - s2
-    print('Time elapsed: {}'.format(run_time))
-    return acc, run_time
+    print('Time elapsed: {}'.format(time.time()-startTime))
+    return acc
 
 def trainTeacherStudentParallel(teacher, students, dataset, epochs=5, lr=0.0005):
     if len(students) == 0:
         return []
+    startTime = time.time()
     students = [student.cuda() for student in students]
     teacher = teacher.cuda()
     # If there is a log softmax somewhere, delete it in both teacher and student
@@ -250,85 +238,16 @@ def trainTeacherStudentParallel(teacher, students, dataset, epochs=5, lr=0.0005)
             students[j].add_module('LogSoftmax', nn.LogSoftmax())
             dataset.net = students[j]
             print('Student {} acc {}'.format(j, dataset.test()))
-            removeLayers(students[j], type='LogSoftmax')
+            removeLayers(student, type='LogSoftmax')
         
     accs = []
-    run_time =[]
     for student in students:
         removeLayers(student, type='LogSoftmax')
         student.add_module('LogSoftmax', nn.LogSoftmax())
         dataset.net = student
-        startTime = time.time()
         accs.append(dataset.test())
-        run_time.append(time.time() - startTime)
-    print('Time elapsed {}'.format(run_time))
-    print(accs)
-    print(run_time)
-    return accs, run_time
-
-
-def trainStudentTeacherParallelNew(teacher, students, dataset, epochs=5, lr=0.0005, alpha=0.9, T=3.0):
-    if len(students) == 0:
-        return []
-    students = [student.cuda() for student in students]
-    teacher = teacher.cuda()
-    # If there is a log softmax somewhere, delete it in both teacher and student
-    removeLayers(teacher, type='LogSoftmax')
-    for student in students:
-        removeLayers(student, type='LogSoftmax')
-        student.train()
-    # MSEloss = nn.MSELoss().cuda()
-
-    optimizers = [optim.Adam(student.parameters(), lr=lr, weight_decay=5e-4) for student in students]
-    for i in range(1, epochs+1):
-        for b_idx, (data, targets) in enumerate(dataset.train_loader):
-            data = data.cuda()
-            targets = targets.cuda()
-            targets = Variable(targets)
-            teacherOutput = teacher(Variable(data)).detach()
-            for j in range(len(students)):
-                studentData = Variable(data)
-                optimizers[j].zero_grad()
-                studentOutput = students[j](studentData)
-                # print("before targets")
-                # print("hi")
-                # print("hello")
-                targets=targets.view(-1)
-                # print(targets.size(),studentOutput.size())
-                # print(type(targets),type(studentOutput))
-                # print(studentOutput.data.type())
-                # print(targets)
-                # print(studentOutput[:,0])
-                targets = targets.long()
-                # print(targets)
-                # print(studentOutput)
-                loss = nn.KLDivLoss()(F.log_softmax(studentOutput/T),
-                             F.softmax(teacherOutput/T)) * (alpha * T * T) + \
-              F.cross_entropy(studentOutput, targets) * (1. - alpha)
-                loss.backward()
-                optimizers[j].step()
-        print('Train Epoch: {}'.format(i))
-        for j in range(len(students)):
-            removeLayers(students[j], type='LogSoftmax')
-            students[j].add_module('LogSoftmax', nn.LogSoftmax())
-            dataset.net = students[j]
-            print('Student {} acc {}'.format(j, dataset.test()))
-            removeLayers(students[j], type='LogSoftmax')
-        
-    accs = []
-    run_time =[]
-    for student in students:
-        removeLayers(student, type='LogSoftmax')
-        student.add_module('LogSoftmax', nn.LogSoftmax())
-        dataset.net = student
-        startTime = time.time()
-        accs.append(dataset.test())
-        run_time.append(time.time() - startTime)
-    print('Time elapsed {}'.format(run_time))
-    print(accs)
-    print(run_time)
-    return accs, run_time
-
+    print('Time elapsed {}'.format(time.time() - startTime))
+    return accs
 
 def trainNormal(studentModel, dataset, epochs=5):
     return trainNormalParallel([studentModel], dataset, epochs)[0]
@@ -440,14 +359,6 @@ def layersFromModule(m):
     return top
 
 
-def saveModels(epoch, models, modelSavePath,model_statistics):
+def saveModels(epoch, models, modelSavePath):
     for i in range(len(models)):
         torch.save(models[i], os.path.join(modelSavePath, '%f_%f.net' %(epoch, i)))
-    for i in range(len(model_statistics[0])):
-        filename = modelSavePath+'/'+str(epoch)+'_'+str(i)+'.txt'
-        f = open(filename,'w')
-        f.write("Reward "+str(model_statistics[0][i])+'\n')
-        f.write("Accuracy "+str(model_statistics[1][i])+'\n')
-        f.write("Compression "+str(model_statistics[2][i])+'\n')
-        f.write("Time "+str(model_statistics[3][i])+'\n')
-        f.close()

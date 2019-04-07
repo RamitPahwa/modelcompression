@@ -126,7 +126,7 @@ def trainTeacherStudent(teacher, student, dataset, epochs=5, lr=0.0005):
     optimizer = optim.SGD(student.parameters(), lr=lr, momentum=0.9, nesterov=True, weight_decay=5e-4)
     student.train()
     for i in range(1, epochs+1):
-        for b_idx, (data, targets) in enumerate(dataset.loader('../data/')):
+        for b_idx, (data, targets) in enumerate():
             data = data.cuda()
             data = Variable(data)
             optimizer.zero_grad()

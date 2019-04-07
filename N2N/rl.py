@@ -7,39 +7,17 @@ from torch import nn
 from torch import optim
 from torch.autograd import Variable
 from torch import autograd
-import numpy as np 
-from config import *
-
-try:
-    unicode = unicode
-except NameError:
-    # 'unicode' is undefined, must be Python 3
-    str = str
-    unicode = str
-    bytes = bytes
-    basestring = (str,bytes)
-else:
-    # 'unicode' exists, must be Python 2
-    str = str
-    unicode = unicode
-    bytes = str
-    basestring = basestring
 
 
 
 class Controller:
-    '''
-    This Class defines the Controller Class which 
-    '''
     def __init__(self, controllerClass, input_size, output_size, hidden_size, num_layers, lr=0.003, skipSupport=False, kwargs={}):
         self.input_size = input_size
         self.output_size = output_size 
         self.hidden_size = hidden_size
         self.num_layers = num_layers
         self.kwargs = kwargs
-
         if isinstance(controllerClass, basestring):
-            print('succcess')
             self.controller = torch.load(controllerClass)
         else:
             self.controller = controllerClass(input_size, output_size, hidden_size, num_layers, **kwargs)
@@ -48,16 +26,16 @@ class Controller:
         self.actionSeqs = []
 
     def update_controller(self, avgR, b):
-        for actions in self.actionSeqs:                          
+        for actions in self.actionSeqs:
             if isinstance(actions, list):
-                for action in actions:                           
-                    action.reinforce(avgR - b)                   
-            else:                                                
-                actions.reinforce(avgR - b)                      
-            self.optimizer.zero_grad()                           
-            autograd.backward(actions, [None for _ in actions])  
-            self.optimizer.step()                                
-        self.actionSeqs = []                                     
+                for action in actions:
+                    action.reinforce(avgR - b)
+            else:
+                actions.reinforce(avgR - b)
+            self.optimizer.zero_grad()
+            autograd.backward(actions, [None for _ in actions])
+            self.optimizer.step()
+        self.actionSeqs = []
 
     def rolloutActions(self, layers):
         num_input  = self.input_size
@@ -73,62 +51,6 @@ class Controller:
         self.actionSeqs.append(actions)
         return actions
 
-def accuracy_func2(acc, baseline_acc, threshold1 = 0.60, threshold2 = 0.65):
-    '''
-    This is updated accuracy reward function wrt accuracy incorporating two threshold, different defination of reward at different threshold
-    '''
-    R = acc/baseline_acc
-    R_thres_1 = threshold1/baseline_acc 
-    R_thres_2 = threshold2/baseline_acc
-
-    if R < R_thres_1:
-        return 2.7285463*R*R*R-0.035366
-    elif R_thres_1 < R < R_thres_2:
-        return -1.214 + 2.94683*R
-    else:
-        return np.tanh(-2.9+5.8*R)
-
-def accuracy_func3(acc, baseline_acc, threshold = 0.65):
-    '''
-    This the final reward transformation wt accuracy, essentially a shifted tanh transformation
-    Input : 
-        acc Accurracy of the new compressed model 
-        baseline_acc Accuracy of the original model
-
-    Returns:
-        Transformed Accuracy
-    '''
-    R = acc/baseline_acc
-    R_threshold = threshold/baseline_acc
-    return 0.5+0.5*np.tanh(10*(R-R_threshold))
-
-def accuracy_func(acc, baseline_acc, threshold = 0.65 ):
-    '''
-    Exponential transformation for accuracy reward 
-    Input : 
-        acc Accurracy of the new compressed model 
-        baseline_acc Accuracy of the original model
-
-    Returns:
-        Transformed Accuracy 
-    '''
-    R = acc/baseline_acc
-    R_thres = threshold/baseline_acc
-    if R < R_thres:
-        return R/2
-    else :
-        return np.log((1+np.exp(R-R_thres))/2)
-
-def inference_time_func(run_time, threshold=0.60):
-    '''
-        Input : Inference time defined as run_time
-        return:
-            transformed Inference time
-    '''
-    return 1.0/(1.0 + np.exp((run_time-threshold)*10))
-
-def compression(comp_ratio,threshold=0.80):
-    return (1.0-1.0/(1.0 + np.exp((comp_ratio-threshold)*10)))
 
 def getEpsilon(iter, max_iter=15.0):
     return min(1, max(0, (1-iter/float(max_iter))**4)) #return 0
@@ -142,97 +64,23 @@ def getConstrainedReward(R_a, R_c, cons, vars, iter):
     else:
         return R_a * R_c
 '''
-def accuracy_new(acc,base_acc,threshold=Accuracy_threshold):
-    acc_ratio=acc/base_acc
-    if FUNC=='tanh':
-        print("In Tanh")
-        return 0.5+0.5*np.tanh(10*(acc_ratio-threshold))
-    print("Accuracy threshold is {}".format(threshold))
-    # acc_ratio=acc/base_acc
-    return (1.0-1.0/(1.0 + np.exp((acc_ratio-threshold)*15)))
-
-def inference_new(run_time, threshold=Inference_threshold):
-    '''
-        Input : Inference time defined as run_time
-        return:
-            transformed Inference time
-    '''
-    return 1.0/(1.0 + np.exp((run_time-threshold)*15))
-
-def compression_new(comp_ratio, threshold=Compression_threshold):
-    '''
-        Input : Inference time defined as run_time
-        return:
-            transformed Inference time
-    '''
-    return 1.0/(1.0 + np.exp((comp_ratio-threshold)*15))
-
-def getConstrainedReward(R_a, R_c, acc, params, it, acc_constraint, size_constraint, epoch, soft=True):
-    '''
-    This function for hard contraints on accuracy as well as size 
-    Input:
-        R_a : Reward for accuracy 
-        R_c : Reward for compression
-        it: Reward for inference time
-        acc_contraint : Accuracy constraint 
-        Size_contraint: Size contraint 
-    '''
+def getConstrainedReward(R_a, R_c, acc, params, acc_constraint, size_constraint, epoch, soft=True):
     eps = getEpsilon(epoch) if soft else 0
     if (size_constraint and params > size_constraint) or (acc_constraint and acc < acc_constraint):
-        return (eps - 1) + eps * (R_a)*(R_c)*1.0/(it)
-    return (R_a)*(R_c)*1.0/(it)
+        return (eps - 1) + eps * (R_a * R_c)
+    return R_a * R_c
 
 
-def Reward(acc, params, baseline_acc, baseline_params,run_time, size_constraint=None, acc_constraint=None, epoch=-1):
-    '''
-    Compute reward Combination of Accuracy, Compression, and Inference time
-    '''
-
-    R_a = acc/baseline_acc
+def Reward(acc, params, baseline_acc, baseline_params, size_constraint=None, acc_constraint=None, epoch=-1):
+    R_a = (acc/baseline_acc) #if acc > 0.92 else -1
     C = (float(baseline_params - params))/baseline_params
     R_c = C*(2-C)
+    if size_constraint or acc_constraint:
+        return getConstrainedReward(R_a, R_c, acc, params, acc_constraint, size_constraint, epoch)
     return (R_a) * (R_c)
-    print("In reward")
-    R_a = accuracy_func3(acc,baseline_acc) #if acc > 0.92 else -1
-    # R_a = acc/baseline_acc
-    it = inference_time_func(run_time)
-    # print("Runtime : {}".format(run_time))
-    C = (float(baseline_params - params))/baseline_params
-    # R_c transformation as defined in the paper
-    R_c = C*(2-C)
-    # R_c=compression(C)
-    # if size_constraint or acc_constraint:
-        # return getConstrainedReward(R_a, R_c, acc, params,it, acc_constraint, size_constraint, epoch)
-    # return (R_a) * (R_c)*1.0/np.log(run_time)
-    # print(R_a)
-    # print(it)
-    return (R_a)*(R_c)*it
-    # R_a = accuracy_new(acc,baseline_acc)
-    # c=float(params)/float(baseline_params)
-    # print(c)
-    # R_c=compression_new(c)
-    # R_t=inference_new(run_time)
-    # print("Additive_new")
-    # return R_a+R_c+R_t
-    # return (R_a)*(R_c)*(it)
 
 previousModels = {}
-def rollout_batch(model, controller, architecture, dataset, N, e,parent_runtime, acc_constraint=None, size_constraint=None):
-    '''
-    This generates a model given a parent model by removing layers to produce new models if the new models return is None then a reward of -1 is assigned 
-    Input:
-        Model : Parent Model 
-        Controller : Compression Policy LSTM or AutoRegressive LSTM
-        Architecture : Use the Architecture function called in run.py class at Architecture.py
-        dataset: called in run.py
-        N: 
-
-    '''
-    model_statistics= [] 
-    model_reward = [-1]*N
-    model_time = [-1]*N
-    model_accuracy = [-1]*N
-    model_compression = [-1]*N
+def rollout_batch(model, controller, architecture, dataset, N, e, acc_constraint=None, size_constraint=None):
     newModels = []
     idxs = []
     Rs = [0]*N
@@ -250,53 +98,29 @@ def rollout_batch(model, controller, architecture, dataset, N, e,parent_runtime,
         elif newModel is None:
             Rs[i] = -1
         else:
-            # print(newModel)
+            print(newModel)
             #torch.save(newModel, modelSavePath + '%f_%f.net' % (e, i))
             newModels.append(newModel)
             studentModels.append(newModel)
             idxs.append(i)
-    accs = []
-    # accs = trainNormalParallel(studentModels, dataset, epochs=5) if architecture.datasetName is 'caltech256' else trainTeacherStudentParallel(model, studentModels, dataset, epochs=5)
-    run_time = []
-    try :
-        accs, run_time = trainStudentTeacherParallelNew(model, studentModels, dataset, epochs=STUDENT_EPOCHES)
-        # accs, run_time = trainTeacherStudentParallel(model, studentModels, dataset, epochs=STUDENT_EPOCHES)
-        for i in range(len(idxs)):
-            model_accuracy[idxs[i]] = accs[i]
-            model_time[idxs[i]] = run_time[i]
-        print (accs)
-        print (run_time)
-    except ValueError:
-        print("Value something ")
+    accs = trainNormalParallel(studentModels, dataset, epochs=5) if architecture.datasetName is 'caltech256' else trainTeacherStudentParallel(model, studentModels, dataset, epochs=5)
     for acc in accs:
         print('Val accuracy: %f' % acc)
     for i in range(len(newModels)):
-        model_compression[i] = 1.0 - (float(numParams(newModels[i]))/architecture.parentSize)
         print('Compression: %f' % (1.0 - (float(numParams(newModels[i]))/architecture.parentSize)))
-    
-    # time_ratio = run_time/parent_runtime
     #R = [Reward(accs[i], numParams(newModels[i]), architecture.baseline_acc, architecture.parentSize, iter=int(e), constrained=constrained, vars=[numParams(newModels[i])], cons=[1700000]) for i in range(len(accs))]
-    print(acc_constraint,"constrained")
-    print("parent_runtime : {}".format(parent_runtime))
-    R = [Reward(accs[i], numParams(newModels[i]), architecture.baseline_acc, architecture.parentSize, run_time[i]/parent_runtime , size_constraint=size_constraint, acc_constraint=acc_constraint, epoch=e) for i in range(len(accs))]
+    R = [Reward(accs[i], numParams(newModels[i]), architecture.baseline_acc, architecture.parentSize, size_constraint=size_constraint, acc_constraint=acc_constraint, epoch=e) for i in range(len(accs))]
     for i in range(len(idxs)):
         Rs[idxs[i]] = R[i]
     for i in range(len(Rs)):
         print('Reward achieved %f' % Rs[i])
-    model_reward = Rs
-    model_statistics.extend([model_reward,model_accuracy,model_compression,model_time])
-    # input()
-    return (Rs, actionSeqs, newModels,model_statistics)
+    return (Rs, actionSeqs, newModels)
 
 
-def rollouts(N, model, controller, architecture, dataset, e,parent_runtime, size_constraint=None, acc_constraint=None):
-    '''
-    Calls rollout batch function
-    return reward , sequence of action (keep a layer or not ) , and compressed models
-    '''
+def rollouts(N, model, controller, architecture, dataset, e, size_constraint=None, acc_constraint=None):
     Rs = []
     actionSeqs = []
     models = []
-    (Rs, actionSeqs, models,model_statistics) = rollout_batch(copy.deepcopy(model), controller, architecture, dataset, N, e,parent_runtime, acc_constraint=acc_constraint, size_constraint=size_constraint)
-    return (Rs, actionSeqs, models,model_statistics)
+    (Rs, actionSeqs, models) = rollout_batch(copy.deepcopy(model), controller, architecture, dataset, N, e, acc_constraint=acc_constraint, size_constraint=size_constraint)
+    return (Rs, actionSeqs, models)
 

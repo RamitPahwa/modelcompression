@@ -7,7 +7,6 @@ from torch.autograd import Variable
 
 from torchvision import datasets, transforms
 from torchvision import models
-from datasets.cifar_dataloader import CIFAR100Sel
 
 batch_size = 200
 lr = 1e-3
@@ -47,43 +46,6 @@ test_loader = torch.utils.data.DataLoader(
                    ])),
     batch_size=batch_size, shuffle=False, **kwargs)
 
-def unpickle(file):
-    import pickle
-    with open(file, 'rb') as fo:
-        dict = pickle.load(fo, encoding='latin1')
-    return dict
-
-meta = unpickle('./cifar-100-python/meta')
-name_class = {}
-for i,name in enumerate(meta['fine_label_names']):
-    name_class[name]=i
-
-# names = ['bee', 'beetle', 'butterfly', 'caterpillar', 'cockroach'] 
-# names = ['bicycle', 'bus', 'motorcycle', 'pickup_truck', 'train']
-names = ['apple', 'mushroom', 'orange', 'pear', 'sweet_pepper']
-names = ['apple', 'mushroom', 'orange']
-
-names=list(name_class.keys())
-# names = ['fox', 'porcupine', 'possum', 'raccoon', 'skunk','hamster', 'mouse', 'rabbit', 'shrew', 'squirrel','beaver', 'dolphin', 'otter', 'seal', 'whale']
-print(names)
-
-trainset = CIFAR100Sel(root='./',names=names,name_class=name_class,train =True,transform=transforms.Compose([
-                                                transforms.RandomCrop(32, padding=4),
-                                                transforms.RandomHorizontalFlip(),
-                                                transforms.ToTensor(),
-                                                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]))
-
-testset = CIFAR100Sel(root='./',names=names,name_class=name_class,train=False,transform=transforms.Compose([
-                                                transforms.ToTensor(),
-                                              transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]))
-
-
-train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True)
-
-test_loader =torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False)
-
-print(len(train_loader.dataset))
-print(len(test_loader.dataset))
 
 # using the 55 epoch learning rule here
 def paramsforepoch(epoch):

@@ -10,10 +10,6 @@ from rl import *
 from architecture import *
 import os
 import warnings
-from tqdm import tqdm
-from config import *
-from shutil import copyfile
-
 warnings.filterwarnings("ignore")
 with warnings.catch_warnings():
     warnings.simplefilter('ignore')
@@ -39,23 +35,12 @@ parser.add_argument('--acc_constraint', type=float, required=False,
                     help='Add a constraint on accuracy in [0, 1]')
 parser.add_argument('--controller', type=str, required=False,
                     help='Path to a previously trained controller')
-parser.add_argument('--model_save_path',type=str,required=True,help='Path to save model checkpoints')
-parser.add_argument('--controller_save_path',type=str,required =True,help='Path to controllers save path')
 args = parser.parse_args()
-
-
-controllerSavePath = './'+ args.controller_save_path +'_%s' % args.dataset
-if not os.path.exists(controllerSavePath):
-    os.mkdir(controllerSavePath)
-modelSavePath = './'+ args.model_save_path +'_%s' % args.dataset
-if not os.path.exists(modelSavePath):
-    os.mkdir(modelSavePath)
-copyfile('./config.py',os.path.join(modelSavePath,'config.py'))
 
 if len(args.gpuids) > 1:
     print('Parallel version not implemented yet')
 else:
-    torch.cuda.set_device(int(args.gpuids[0]))
+    torch.cuda.set_device(args.gpuids[0])
 
 # ----DATASETS----
 if args.dataset == 'mnist':
@@ -78,29 +63,26 @@ else:
 
 print('Using %s as dataset' % args.dataset)
 dataset.cuda = args.cuda
-# print(dataset.test_loader.dataset[0])
 datasetInputTensor = dataset.test_loader.dataset[0][0].unsqueeze(0)
 print(datasetInputTensor.size())
 baseline_acc = None
-# names =['automobile','cat']
-
 
 # ----MODELS----
 # Load teacherModel
-print("loading model")
 teacherModel = torch.load(args.teacherModel)
-print("model loaded")
 # Load baseModel (if available)
-print("copying model")
 model = torch.load(args.model) if args.model else deepcopy(teacherModel)
-print("model copied")
+
 # ----PATHS----
 # Define save paths
-
+controllerSavePath = './controllers_%s/' % args.dataset
+if not os.path.exists(controllerSavePath):
+    os.mkdir(controllerSavePath)
+modelSavePath = './models_%s' % args.dataset
 
 # ----HYPERPARAMETERS----
 # Initialize controller based on mode
-skipSupport = True
+skipSupport = False
 num_layers = 2
 num_hidden = 30
 num_input = 7 if skipSupport else 5
@@ -109,7 +91,7 @@ controller = None
 optim_controller = None
 lr = 0.003
 
-# ----MODE---- layer removal vs layer shrinkage (node removal)
+# ----MODE----
 if args.mode == 'removal':
     num_output = 2
     #from controllers.ActorCriticLSTM import *
@@ -135,38 +117,32 @@ acc_constraint = args.acc_constraint
 # Identify baseline accuracy of base model
 dataset.net = model.cuda() if args.cuda else model
 print('Testing parent model to determine baseline accuracy')
-import time
-startTime = time.time()
 baseline_acc = baseline_acc if baseline_acc != None else dataset.test()
-parent_runtime = time.time() - startTime
+
 
 # Store statistics for each model
 previousModels = {}
 accsPerModel = {}
 paramsPerModel = {}
 rewardsPerModel = {}
+numSavedModels = 0
 
 # Reward terms for reinforce baseline
 R_sum = 0
 b = 0
 
-
-epochs = RL_EPOCHS
-N = 5
+epochs = 100
+N = 5 
 prevRs = [0] * N
 if args.controller:
     controllerClass = args.controller
 controller = Controller(controllerClass, num_input, num_output, num_hidden, num_layers, lr=lr, skipSupport=skipSupport, kwargs=extraControllerParams)
-# print(controller)
-# torch.save(controller, os.path.join(controllerSavePath, 'shit.txt'))
-# exit()
 architecture = Architecture(args.mode, model, datasetInputTensor, args.dataset, baseline_acc=baseline_acc, lookup=lookup)
 # ----MAIN LOOP----
-for e in tqdm(range(epochs)):
+for e in range(epochs):
     # Compute N rollouts
-    (Rs, actionSeqs, models,model_statistics) = rollouts(N, model, controller, architecture, dataset, e, parent_runtime,  size_constraint=size_constraint, acc_constraint=acc_constraint)
-    saveModels(e, models, modelSavePath, model_statistics)
-    print(model_statistics)
+    (Rs, actionSeqs, models) = rollouts(N, model, controller, architecture, dataset, e, size_constraint=size_constraint, acc_constraint=acc_constraint)
+    saveModels(e, models, modelSavePath)
     # Compute average reward
     avgR = np.mean(Rs)
     print('Average reward: %f' % avgR)
@@ -178,6 +154,6 @@ for e in tqdm(range(epochs)):
     print('Reinforcing for epoch %d' % e)
     controller.update_controller(avgR, b)
 
-torch.save(controller, os.path.join(controllerSavePath, 'controller'))
+torch.save(controller, controllerSavePath)
 resultsFile = open(os.path.join(modelSavePath, 'results.txt'), "w")
 output_results(resultsFile, accsPerModel, paramsPerModel, rewardsPerModel)

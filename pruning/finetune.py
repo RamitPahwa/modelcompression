@@ -48,7 +48,7 @@ class ModifiedVGG16Model(torch.nn.Module):
 class ModifiedVGG19Model(torch.nn.Module):
 	def __init__(self):
 		super(ModifiedVGG19Model, self).__init__()
-
+		# 
 		# model = models.vgg19(pretrained=True)
 		# for Cifar-100
 		'''

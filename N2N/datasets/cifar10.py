@@ -4,12 +4,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.autograd import Variable
-import numpy as np
+
 from torchvision import datasets, transforms
 from torchvision import models
 
-from torch.utils.data.sampler import SubsetRandomSampler
-from datasets.cifar_dataloader import CIFARSel
 
 batch_size = 200
 lr = 1e-3
@@ -31,93 +29,25 @@ transform = transforms.Compose([
     #transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
 ])
-
-trainset = datasets.CIFAR10(root='./', train=True,download=True, transform=transforms.Compose([
+train_loader = torch.utils.data.DataLoader(
+    datasets.CIFAR10('./', train=True, download=True,
+                   transform=transforms.Compose([
                        transforms.RandomCrop(32, padding=4),
                        transforms.RandomHorizontalFlip(),
                        transforms.ToTensor(),
-                       transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]))
-
-devset = datasets.CIFAR10(root='./', train=False,download=True, transform=transforms.Compose([
-                       transforms.ToTensor(),
                        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-                       ]))
-
-trainset_size = len(trainset)
-indices = list(range(trainset_size))
-split = int(np.floor(0.5 * trainset_size))
-np.random.seed(230)
-np.random.shuffle(indices)
-
-train_sampler = SubsetRandomSampler(indices[:split])
-
-train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,sampler=train_sampler)
-
-test_loader = torch.utils.data.DataLoader(devset, batch_size=batch_size,shuffle=False)
-
-
-# train_loader = torch.utils.data.DataLoader(
-#     datasets.CIFAR10('./', train=True, download=True,
-#                    transform=transforms.Compose([
-#                        transforms.RandomCrop(32, padding=4),
-#                        transforms.RandomHorizontalFlip(),
-#                        transforms.ToTensor(),
-#                        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-#                        #transforms.Normalize((0.491399689874, 0.482158419622, 0.446530924224), (0.247032237587, 0.243485133253, 0.261587846975))
-#                    ])),
-#     batch_size=batch_size, shuffle=True, **kwargs)
-# test_loader = torch.utils.data.DataLoader(
-#     datasets.CIFAR10('./', train=False, transform=transforms.Compose([
-#                        transforms.ToTensor(),
-#                        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-#                        #transforms.Normalize((0.491399689874, 0.482158419622, 0.446530924224), (0.247032237587, 0.243485133253, 0.261587846975))
-#                    ])),
-#     batch_size=batch_size, shuffle=False, **kwargs)
-
-'''
-train_loader = torch.utils.data.DataLoader(datasets.ImageFolder(root='./cifar10/train_car/',
-                                           transform=transforms.Compose([
-                                                transforms.RandomCrop(32, padding=4),
-                                                transforms.RandomHorizontalFlip(),
-                                                transforms.ToTensor(),
-                                                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])),batch_size=batch_size,shuffle=True)
-
-test_loader = torch.utils.data.DataLoader(datasets.ImageFolder(root='./cifar10/train_car/',transform=transforms.Compose([
+                       #transforms.Normalize((0.491399689874, 0.482158419622, 0.446530924224), (0.247032237587, 0.243485133253, 0.261587846975))
+                   ])),
+    batch_size=batch_size, shuffle=True, **kwargs)
+test_loader = torch.utils.data.DataLoader(
+    datasets.CIFAR10('./', train=False, transform=transforms.Compose([
                        transforms.ToTensor(),
                        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
                        #transforms.Normalize((0.491399689874, 0.482158419622, 0.446530924224), (0.247032237587, 0.243485133253, 0.261587846975))
-                   ])),batch_size=batch_size,shuffle=False)
-'''
-name_class = {'airplane':0,
-                    'automobile':1,
-                    'bird':2,
-                    'cat':3,
-                    'deer':4,
-                    'dog':5,
-                    'frog':6,
-                    'horse':7,
-                    'ship':8,
-                    'truck':9}
+                   ])),
+    batch_size=batch_size, shuffle=False, **kwargs)
 
-# names =['automobile','cat']
-names =['bird','cat','deer','dog','frog','horse']
-# names =['airplane','automobile','ship','truck']
-# names=list(name_class.keys())
-print(names)
-# cifar selected load 
-train_sampler = SubsetRandomSampler(indices[:split])
-train_loader = torch.utils.data.DataLoader(CIFARSel(root='./',names=names,name_class=name_class,train =True,transform=transforms.Compose([
-                                                transforms.RandomCrop(32, padding=4),
-                                                transforms.RandomHorizontalFlip(),
-                                                transforms.ToTensor(),
-                                                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])),batch_size=batch_size,shuffle=True)
 
-test_loader =torch.utils.data.DataLoader(CIFARSel(root='./',names=names,name_class=name_class,train=False,transform=transforms.Compose([
-                                                transforms.ToTensor(),
-                                                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])),batch_size=batch_size,shuffle=True)
-
-print(len(train_loader.dataset))
-print(len(test_loader.dataset))
 # using the 55 epoch learning rule here
 def paramsforepoch(epoch):
     p = dict()
