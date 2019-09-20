@@ -45,7 +45,7 @@ devset = datasets.CIFAR10(root='./', train=False,download=True, transform=transf
 
 trainset_size = len(trainset)
 indices = list(range(trainset_size))
-split = int(np.floor(0.5 * trainset_size))
+split = int(np.floor(1.0 * trainset_size))
 np.random.seed(230)
 np.random.shuffle(indices)
 
@@ -87,7 +87,7 @@ test_loader = torch.utils.data.DataLoader(datasets.ImageFolder(root='./cifar10/t
                        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
                        #transforms.Normalize((0.491399689874, 0.482158419622, 0.446530924224), (0.247032237587, 0.243485133253, 0.261587846975))
                    ])),batch_size=batch_size,shuffle=False)
-'''
+
 name_class = {'airplane':0,
                     'automobile':1,
                     'bird':2,
@@ -115,9 +115,10 @@ train_loader = torch.utils.data.DataLoader(CIFARSel(root='./',names=names,name_c
 test_loader =torch.utils.data.DataLoader(CIFARSel(root='./',names=names,name_class=name_class,train=False,transform=transforms.Compose([
                                                 transforms.ToTensor(),
                                                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])),batch_size=batch_size,shuffle=True)
-
+'''
 print(len(train_loader.dataset))
 print(len(test_loader.dataset))
+
 # using the 55 epoch learning rule here
 def paramsforepoch(epoch):
     p = dict()
