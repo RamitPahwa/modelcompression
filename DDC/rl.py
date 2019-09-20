@@ -187,34 +187,26 @@ def Reward(acc, params, baseline_acc, baseline_params,run_time, size_constraint=
     '''
     Compute reward Combination of Accuracy, Compression, and Inference time
     '''
-
-    R_a = acc/baseline_acc
-    C = (float(baseline_params - params))/baseline_params
-    R_c = C*(2-C)
-    return (R_a) * (R_c)
-    print("In reward")
-    R_a = accuracy_func3(acc,baseline_acc) #if acc > 0.92 else -1
+    R_a = accuracy_new(acc/baseline_acc, Accuracy_threshold)
+    R_c = compression_new(params/baseline_params, Compression_threshold)
+    R_t = inference_new(run_time, Inference_threshold)
+    Total_Reward = R_a * R_c * R_t
+    print("Total Reward:"+str(Total_Reward))
+    return Total_Reward
     # R_a = acc/baseline_acc
-    it = inference_time_func(run_time)
-    # print("Runtime : {}".format(run_time))
-    C = (float(baseline_params - params))/baseline_params
-    # R_c transformation as defined in the paper
-    R_c = C*(2-C)
-    # R_c=compression(C)
-    # if size_constraint or acc_constraint:
-        # return getConstrainedReward(R_a, R_c, acc, params,it, acc_constraint, size_constraint, epoch)
-    # return (R_a) * (R_c)*1.0/np.log(run_time)
-    # print(R_a)
-    # print(it)
-    return (R_a)*(R_c)*it
-    # R_a = accuracy_new(acc,baseline_acc)
-    # c=float(params)/float(baseline_params)
-    # print(c)
-    # R_c=compression_new(c)
-    # R_t=inference_new(run_time)
-    # print("Additive_new")
-    # return R_a+R_c+R_t
-    # return (R_a)*(R_c)*(it)
+    # C = (float(baseline_params - params))/baseline_params
+    # R_c = C*(2-C)
+    # return (R_a) * (R_c)
+    # print("In reward")
+    # R_a = accuracy_func3(acc,baseline_acc) #if acc > 0.92 else -1
+    # # R_a = acc/baseline_acc
+    # it = inference_time_func(run_time)
+    # # print("Runtime : {}".format(run_time))
+    # C = (float(baseline_params - params))/baseline_params
+    # # R_c transformation as defined in the paper
+    # R_c = C*(2-C)
+    # return (R_a)*(R_c)*it
+
 
 previousModels = {}
 def rollout_batch(model, controller, architecture, dataset, N, e,parent_runtime, acc_constraint=None, size_constraint=None):
