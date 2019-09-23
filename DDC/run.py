@@ -2,6 +2,7 @@ import os
 import torch
 from torch import nn 
 from torch import optim
+from torchvision import models
 from torch.autograd import Variable
 import numpy as np
 from copy import deepcopy
@@ -88,7 +89,8 @@ baseline_acc = None
 # ----MODELS----
 # Load teacherModel
 print("loading model")
-teacherModel = torch.load(args.teacherModel)
+# teacherModel = torch.load(args.teacherModel)
+teacherModel = models.resnet18(pretrained=True)
 print("model loaded")
 # Load baseModel (if available)
 print("copying model")
