@@ -46,7 +46,7 @@ if args.new:
         for filename in os.listdir(args.model):
             if filename.endswith('.net'):
                 model = torch.load(os.path.join(args.model, filename))
-                dataset.net = model.cuda() if args.cuda else model
+                dataset.net = model.cuda()
 
                 start_time = time.time()
                 acc = dataset.test()
