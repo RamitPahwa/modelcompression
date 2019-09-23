@@ -10,13 +10,13 @@ with warnings.catch_warnings():
 parser = argparse.ArgumentParser(description='Test model')
 parser.add_argument('model', type=str,
                     help='Path to model')
-# parser.add_argument('teachermodel', type=str,
-#                     help='Path to teacher model')
+parser.add_argument('teachermodel', type=str,
+                    help='Path to teacher model')
 
 parser.add_argument('dataset', type=str, choices=['mnist', 'cifar10', 'cifar10_old', 'cifar100', 'svhn', 'caltech256'],
                     help='Name of dataset')
-# parser.add_argument('--new', type=bool, default=False, help='HELP')
-# parser.add_argument('--file_name',type=str,help='Name of output file')
+parser.add_argument('--new', type=bool, default=False, help='HELP')
+parser.add_argument('--file_name',type=str,help='Name of output file')
 args = parser.parse_args()
 import time
 # ----DATASETS----
@@ -39,29 +39,29 @@ else:
     quit()
 
 
-# if args.new:
-#     orig_params = numParams(torch.load(args.teachermodel))
-#     with open(args.file_name+'.out', 'w+') as ofile:
-#         print('open')
-#         for filename in os.listdir(args.model):
-#             if filename.endswith('.net'):
-#                 model = torch.load(os.path.join(args.model, filename))
-#                 dataset.net = model.cuda() if args.cuda else model
+if args.new:
+    orig_params = numParams(torch.load(args.teachermodel))
+    with open(args.file_name+'.out', 'w+') as ofile:
+        print('open')
+        for filename in os.listdir(args.model):
+            if filename.endswith('.net'):
+                model = torch.load(os.path.join(args.model, filename))
+                dataset.net = model.cuda() if args.cuda else model
 
-#                 start_time = time.time()
-#                 acc = dataset.test()
-#                 run_time = time.time() - start_time
-#                 print(run_time)
-#                 ofile.write('---------------------' + filename + '-----------------------\n')
-#                 ofile.write('Accuracy = ' + str(acc) + '\n')
-#                 ofile.write('Time = ' + str(run_time) + '\n')
-#                 ofile.write('Num Params = ' + str(numParams(model)) + '\n')
-#                 ofile.write('Ratio = ' + str(numParams(model)/orig_params) + '\n')
+                start_time = time.time()
+                acc = dataset.test()
+                run_time = time.time() - start_time
+                print(run_time)
+                ofile.write('---------------------' + filename + '-----------------------\n')
+                ofile.write('Accuracy = ' + str(acc) + '\n')
+                ofile.write('Time = ' + str(run_time) + '\n')
+                ofile.write('Num Params = ' + str(numParams(model)) + '\n')
+                ofile.write('Ratio = ' + str(numParams(model)/orig_params) + '\n')
 
-# else:
-model = torch.load(args.model)
-dataset.net = model.cuda()
-start = time.time()
-acc = dataset.test()
-print(time.time()-start)
+else:
+    model = torch.load(args.model)
+    dataset.net = model.cuda()
+    start = time.time()
+    acc = dataset.test()
+    print(time.time()-start)
 # acc= dataset.train()
