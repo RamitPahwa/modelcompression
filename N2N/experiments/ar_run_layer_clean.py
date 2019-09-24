@@ -156,6 +156,7 @@ def rollout(model_, i):
     global b
     global R_sum
     featureLayers = [Layer(l) for l in model_.features._modules.values()]
+    print(featureLayers)
     featureLayers = list(filter(lambda x: x.type in [1, 2, 8], featureLayers))
     classifierLayers = [Layer(l) for l in model_.classifier._modules.values()]
     classifierLayers = list(filter(lambda x: x.type in [5], classifierLayers))

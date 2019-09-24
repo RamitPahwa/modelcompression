@@ -20,7 +20,7 @@ datasetInputTensor = dataseta.test_loader.dataset[0][0].unsqueeze(0)
 print(datasetInputTensor.size())
 
 print("loading model")
-teacherModel = torch.load('resnet18_cifar10.net')
+teacherModel = torch.load('resnet18cifar.net')
 print("model loaded")
 
 dmodel = dnet.NET2('net').cuda()
@@ -31,6 +31,7 @@ from torchvision import models
 from torch.utils.data.sampler import SubsetRandomSampler
 # from datasets.cifar_dataloader import CIFARSel
 from datasets.cifar_dataloader import CIFARSel
+
 batch_size = 200
 lr = 1e-3
 seed = 1
@@ -74,6 +75,22 @@ train_sampler = SubsetRandomSampler(indices[:split])
 train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,sampler=train_sampler)
 
 test_loader = torch.utils.data.DataLoader(devset, batch_size=batch_size,shuffle=False)
+
+def train(net , train_loader, epochs):
+    for epoch in range(1,epochs+1):
+        for batch_idx, (inputs, targets) in enumerate(train_loader):
+            inputs, targets = inputs.cuda(), targets.cuda()
+            outputs = net(inputs)
+            loss = criterion(outputs, targets)
+
+            test_loss += loss.item()
+            _, predicted = outputs.max(1)
+            total += targets.size(0)
+            correct += predicted.eq(targets).sum().item()
+
+            progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+                % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
+
 
 def KDTRAIN(teacher, student, train_loader, epochs=5, lr=0.0005):
     startTime = time.time()
