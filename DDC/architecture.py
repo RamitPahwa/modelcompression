@@ -43,7 +43,8 @@ class Architecture:
 
     def traverse_removal(self, parent, m, m_name, actions):
         classname = m.__class__.__name__
-        if classname in ['Sequential', 'BasicBlock', 'Bottleneck', 'ResNet', 'VGG', 'LeNet', 'mnist_model', 'Model', 'ResNetModifiable', 'BasicBlockModifiable']:
+        print(classname)
+        if classname in ['Sequential', 'BasicBlock', 'Bottleneck', 'ResNet', 'VGG', 'LeNet', 'mnist_model', 'Model', 'ResNetModifiable', 'BasicBlockModifiable','ModifiedResNet18Model']:
             child = createParentContainer(m)
             for i in m._modules.keys():
                 if i == 'shortcut':
@@ -51,7 +52,7 @@ class Architecture:
                 res = self.traverse_removal(child, m._modules[i], i, actions)
                 if res == None:
                     return None
-            if classname not in ['ResNet', 'VGG', 'LeNet', 'mnist_model', 'Model', 'ResNetModifiable']:
+            if classname not in ['ResNet', 'VGG', 'LeNet', 'mnist_model', 'Model', 'ResNetModifiable','ModifiedResNet18Model']:
                 parent.add_module(m_name, child)
             else:
                 return child
