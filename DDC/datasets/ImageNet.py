@@ -1,4 +1,4 @@
-gitimport argparse
+import argparse
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -38,8 +38,9 @@ if cuda:
 kwargs = {'num_workers': 1, 'pin_memory': True} if cuda else {}
 normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                      std=[0.229, 0.224, 0.225])
-traindir = '/home/ubuntu/inapp/modelcompression/imagenet/exp1-2/train'
-valdir = '/home/ubuntu/inapp/modelcompression/imagenet/exp1-2/val'
+#traindir = '/home/ubuntu/inapp/modelcompression/imagenet/exp1/train'
+traindir = '/code/imagenet/exp1/train'
+valdir = '/code/imagenet/exp1/val'
 
 train_loader = torch.utils.data.DataLoader(
         datasets.ImageFolder(traindir, transforms.Compose([
@@ -60,7 +61,8 @@ test_loader = torch.utils.data.DataLoader(
         ])),
         batch_size=batch_size, shuffle=False,
         **kwargs)
-
+print(len(train_loader.dataset))
+print(len(test_loader.dataset))
 
 avg_loss = list()
 best_accuracy = 0.0
@@ -122,7 +124,9 @@ def test():
         # do the forward pass
         score = net.forward(data)
         pred = score.data.max(1)[1] # got the indices of the maximum, match them
-        correct += pred.eq(target.data).cpu().sum()
+        print(pred)
+	print(target.data)
+	correct += pred.eq(target.data).cpu().sum()
 
     print("predicted {} out of {}".format(correct, len(test_loader.dataset)))
     val_accuracy = correct / float(len(test_loader.dataset)) * 100.0

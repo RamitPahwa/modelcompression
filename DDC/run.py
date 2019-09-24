@@ -22,10 +22,9 @@ with warnings.catch_warnings():
 parser = argparse.ArgumentParser(description='N2N: Network to Network Compression using Policy Gradient Reinforcement Learning')
 parser.add_argument('mode', type=str, choices=['removal', 'shrinkage'],
                     help='Which mode to run the program')
-parser.add_argument('dataset', type=str, choices=['mnist', 'cifar10', 'cifar10_old', 'cifar100', 'svhn', 'caltech256'],
+parser.add_argument('dataset', type=str, choices=['mnist', 'cifar10', 'cifar10_old', 'cifar100', 'svhn', 'caltech256','imagenet'],
                     help='Name of dataset')
-parser.add_argument('teacherModel', type=str,
-                    help='Path to teacher model')
+#parser.add_argument('teacherModel', type=str,help='Path to teacher model')
 parser.add_argument('--model', type=str, required=False,
                     help='Path to base model architecture if different from teacherModel')
 parser.add_argument('--cuda', type=bool, required=False, default=True,
@@ -72,7 +71,7 @@ elif args.dataset == 'svhn':
 elif args.dataset == 'caltech256':
     import datasets.caltech256 as dataset
 elif args.dataset == 'imagenet':
-    import datasets.imagenet as dataset
+    import datasets.ImageNet as dataset
 else:
     print('Dataset not found: ' + args.dataset)
     quit()
@@ -90,7 +89,7 @@ baseline_acc = None
 # Load teacherModel
 print("loading model")
 # teacherModel = torch.load(args.teacherModel)
-teacherModel = models.resnet18(pretrained=True)
+teacherModel = models.resnet34(pretrained=True)
 print("model loaded")
 # Load baseModel (if available)
 print("copying model")
