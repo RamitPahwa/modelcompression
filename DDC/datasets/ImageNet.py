@@ -7,27 +7,13 @@ from torch.autograd import Variable
 
 from torchvision import datasets, transforms
 from torchvision import models
+from folder_dataloader import ImageFolderSel
 
 batch_size = 200
 lr = 1e-3
 seed = 1
 log_schedule = 10
 cuda = True
-
-# # Training settings
-# parser = argparse.ArgumentParser('PyTorch ImageNet Example')
-# parser.add_argument('--batch-size', type=int, default=64, metavar='N', help='batch size of train')
-# parser.add_argument('--epochs', type=int, default=5, metavar='N', help='number of epochs to train for')
-# parser.add_argument('--learning-rate', type=float, default=1e-3, metavar='LR', help='learning rate')
-# parser.add_argument('--momentum', type=float, default=0.9, metavar='M', help='percentage of past parameters to store')
-# parser.add_argument('--no-cuda', action='store_true', default=False, help='use cuda for training')
-# parser.add_argument('--log-schedule', type=int, default=10, metavar='N', help='number of epochs to save snapshot after')
-# parser.add_argument('--seed', type=int, default=1, help='set seed to some constant value to reproduce experiments')
-# parser.add_argument('--model_name', type=str, default=None, help='Use a pretrained model')
-# parser.add_argument('--want_to_test', type=bool, default=False, help='make true if you just want to test')
-
-# args = parser.parse_args()
-# args.cuda = not args.no_cuda and torch.cuda.is_available()
 
 torch.manual_seed(seed)
 if cuda:
@@ -43,24 +29,17 @@ traindir = '/code/imagenet/exp1/train'
 valdir = '/code/imagenet/exp1/val'
 
 train_loader = torch.utils.data.DataLoader(
-        datasets.ImageFolder(traindir, transforms.Compose([
-            transforms.RandomSizedCrop(224),
+        ImageFolderSel(traindir, transforms.Compose([
+            transforms.RandomResizedCrop(224),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
-            normalize,
-        ])),
-        batch_size=batch_size, shuffle=True,
-        **kwargs)
-
+            normalize])),batch_size=batch_size, shuffle=True,**kwargs)
 test_loader = torch.utils.data.DataLoader(
-        datasets.ImageFolder(valdir, transforms.Compose([
-            transforms.Scale(256),
+        ImageFolderSel(valdir, transforms.Compose([
+            transforms.Resize(256),
             transforms.CenterCrop(224),
             transforms.ToTensor(),
-            normalize,
-        ])),
-        batch_size=batch_size, shuffle=False,
-        **kwargs)
+            normalize])),batch_size=batch_size, shuffle=False,**kwargs)
 print(len(train_loader.dataset))
 print(len(test_loader.dataset))
 
@@ -105,7 +84,7 @@ def train(epoch):
                 100. * (b_idx+1)*len(data) / len(train_loader.dataset), loss.data[0]))
 
     # now that the epoch is completed plot the accuracy
-    train_accuracy = correct / float(len(train_loader.dataset))
+    train_accuracy = correct.double() / float(len(train_loader.dataset))
     print("training accuracy ({:.2f}%)".format(100*train_accuracy))
     return (train_accuracy*100.0)
 
@@ -120,16 +99,12 @@ def test():
         if cuda:
             data, target = data.cuda(), target.cuda()
         data, target = Variable(data, volatile=True), Variable(target)
-
-        # do the forward pass
         score = net.forward(data)
         pred = score.data.max(1)[1] # got the indices of the maximum, match them
-        print(pred)
-	print(target.data)
-	correct += pred.eq(target.data).cpu().sum()
+        correct += pred.eq(target.data).cpu().sum()
 
     print("predicted {} out of {}".format(correct, len(test_loader.dataset)))
-    val_accuracy = correct / float(len(test_loader.dataset)) * 100.0
+    val_accuracy = correct.double() / float(len(test_loader.dataset)) * 100.0
     print("accuracy = {:.2f}".format(val_accuracy))
 
     # now save the model if it has better accuracy than the best model seen so forward

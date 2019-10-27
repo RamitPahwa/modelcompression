@@ -107,11 +107,7 @@ class ModifiedResNet18Model(torch.nn.Module):
 
 print("loading model")
 # teacherModel = torch.load(args.teacherModel)
-<<<<<<< Updated upstream
-teacherModel = models.resnet34(pretrained=True)
-=======
 teacherModel = ModifiedResNet18Model().cuda()
->>>>>>> Stashed changes
 print("model loaded")
 # Load baseModel (if available)
 print("copying model")

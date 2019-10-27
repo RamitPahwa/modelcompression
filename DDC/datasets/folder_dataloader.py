@@ -1,4 +1,4 @@
-from .vision import VisionDataset
+from datasets.vision import VisionDataset
 
 from PIL import Image
 
@@ -106,8 +106,8 @@ class DatasetFolder(VisionDataset):
         Ensures:
             No class is a subdirectory of another.
         """
-        transform = open('transform_dict.txt')
-        transform_dict = eval(transform)
+        with open('transform_dict.txt') as transform:
+            transform_dict = eval(transform.read())
         if sys.version_info >= (3, 5):
             # Faster and available in Python 3.5 and above
             classes = [d.name for d in os.scandir(dir) if d.is_dir()]
