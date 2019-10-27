@@ -30,13 +30,13 @@ valdir = '/code/imagenet/exp1/val'
 
 train_loader = torch.utils.data.DataLoader(
         ImageFolderSel(traindir, transforms.Compose([
-            transforms.RandomResizedCrop(224),
+            transforms.RandomSizedCrop(224),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             normalize])),batch_size=batch_size, shuffle=True,**kwargs)
 test_loader = torch.utils.data.DataLoader(
         ImageFolderSel(valdir, transforms.Compose([
-            transforms.Resize(256),
+            transforms.Scale(256),
             transforms.CenterCrop(224),
             transforms.ToTensor(),
             normalize])),batch_size=batch_size, shuffle=False,**kwargs)

@@ -87,27 +87,9 @@ baseline_acc = None
 
 # ----MODELS----
 # Load teacherModel
-class ModifiedResNet18Model(torch.nn.Module):
-    def __init__(self):
-        super(ModifiedResNet18Model, self).__init__()
-        model = models.resnet18(pretrained=True)
-        modules = list(model.children())[:-1]
-        modules[-1] = nn.AvgPool2d(4)
-        model = nn.Sequential(*modules)
-        self.features = model
-        for param in self.features.parameters():
-            param.requires_grad = False
-        self.fc = nn.Sequential(nn.Linear(512,1000))
-
-    def forward(self, x):
-        x = self.features(x)
-        x = x.view(x.size(0), -1)
-        x = self.fc(x)#self.classifier(x)
-        return x
-
 print("loading model")
 # teacherModel = torch.load(args.teacherModel)
-teacherModel = ModifiedResNet18Model().cuda()
+teacherModel = models.resnet18( pretrained = True)
 print("model loaded")
 # Load baseModel (if available)
 print("copying model")
