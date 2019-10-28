@@ -72,7 +72,6 @@ class Architecture:
             if m.fixed or actions[self.a]:
                 m = resizeToFit(Layer(m), self.inp).cuda()
                 print("inp")
-                print(self.inp)
                 print(self.inp.size())
                 self.inp = m(self.inp)
                 parent.add_module(m_name, m)
