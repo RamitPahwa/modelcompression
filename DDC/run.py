@@ -14,6 +14,7 @@ import warnings
 from tqdm import tqdm
 from config import *
 from shutil import copyfile
+from model import resnet18
 
 warnings.filterwarnings("ignore")
 with warnings.catch_warnings():
@@ -88,7 +89,10 @@ baseline_acc = None
 # Load teacherModel
 print("loading model")
 # teacherModel = torch.load(args.teacherModel)
-teacherModel = models.resnet18(pretrained = True)
+# teacherModel = models.resnet18(pretrained = True)
+teacherModel = resnet18()
+state_dict = torch.hub.load_state_dict_from_url('https://download.pytorch.org/models/resnet18-5c106cde.pth', progress=True)
+teacherModel.load_state_dict(state_dict)
 print("model loaded")
 # Load baseModel (if available)
 print("copying model")

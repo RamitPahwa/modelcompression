@@ -71,6 +71,8 @@ class Architecture:
             # else
             if m.fixed or actions[self.a]:
                 m = resizeToFit(Layer(m), self.inp).cuda()
+                print(type(m))
+                print(m)
                 print("inp")
                 print(self.inp.size())
                 self.inp = m(self.inp)
