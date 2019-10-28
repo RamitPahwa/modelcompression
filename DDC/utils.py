@@ -381,6 +381,7 @@ def resizeToFit(layer, inp):
         in_channels = inp.view(inp.size(0), -1).size(1)
         return resizeLayer(layer._layer, in_channels, layer._layer.out_features)
     in_channels = inp.size(1)
+    print(in_channels)
     if 'weight' in layer._layer._parameters:
         _, kernel_size, stride, out_channels, padding = layer.getRepresentation()
         return resizeLayer(layer._layer, in_channels, out_channels, kernel_size, stride, padding)

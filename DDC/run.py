@@ -84,12 +84,11 @@ print(datasetInputTensor.size())
 baseline_acc = None
 # names =['automobile','cat']
 
-
 # ----MODELS----
 # Load teacherModel
 print("loading model")
 # teacherModel = torch.load(args.teacherModel)
-teacherModel = models.resnet18( pretrained = True)
+teacherModel = models.resnet18(pretrained = True)
 print("model loaded")
 # Load baseModel (if available)
 print("copying model")

@@ -44,7 +44,7 @@ class Architecture:
     def traverse_removal(self, parent, m, m_name, actions):
         classname = m.__class__.__name__
         print(classname)
-        if classname in ['Sequential', 'BasicBlock', 'Bottleneck', 'ResNet', 'VGG', 'LeNet', 'mnist_model', 'Model', 'ResNetModifiable', 'BasicBlockModifiable','ModifiedResNet18Model']:
+        if classname in ['Sequential', 'BasicBlock', 'Bottleneck', 'ResNet', 'VGG', 'LeNet', 'mnist_model', 'Model', 'ResNetModifiable', 'BasicBlockModifiable']:
             child = createParentContainer(m)
             for i in m._modules.keys():
                 if i == 'shortcut':
@@ -71,6 +71,7 @@ class Architecture:
             # else
             if m.fixed or actions[self.a]:
                 m = resizeToFit(Layer(m), self.inp).cuda()
+                print(self.inp)
                 self.inp = m(self.inp)
                 parent.add_module(m_name, m)
             self.a += 1
